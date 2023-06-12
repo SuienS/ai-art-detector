@@ -1,0 +1,2 @@
+# Conda installation issue
+conda config --append channels conda-forge
