@@ -1,7 +1,9 @@
-const PRED_URL = "/prediction/test"
+const PRED_URL = "/prediction/art"
 const image_upload = document.getElementById("image-file-input")
 const pred_form_element = document.getElementById("pred-form-data");
 const pred_btn_element = document.getElementById("pred-submit");
+const heatmap_image_element = document.getElementById("heatmap-image");
+
 image_upload.addEventListener("change", showPreview)
 pred_btn_element.addEventListener("click", sendImage)
 
@@ -27,15 +29,22 @@ async function postImage(url, predFormData) {
     }); // parses JSON response into native JavaScript objects
 }
 
+function base64encode(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+}
+
 function sendImage() {
 
     const predFormData = new FormData(pred_form_element);
     for (var pair of predFormData.entries()) {
         console.log(pair[0] + ', ' + pair[1]);
     }
-    postImage(PRED_URL, predFormData).then((data) => {
-        console.log(data); // JSON data parsed by `data.json()` call
-    });
+    postImage(PRED_URL, predFormData).then((response) => response.json())
+        .then((data) => {
+            console.log(data.preds)
+            heatmap_image_element.src = "data:image/jpeg;base64,"+data.hm_img
+        }).catch(console.error);
 }
 
+//inmg src="data:image/jpeg;base64,{{ hm_img }}"
 //https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch

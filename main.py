@@ -61,8 +61,6 @@ async def art_brain_pred(
 
     art_image.resize((256, 256))
 
-    print(art_image.size)
-
     # art_image = image.img_to_array(art_image)
     #
     # pred_style_index, fusioned_hm_image = art_utils.make_prediction(
@@ -79,7 +77,7 @@ async def art_brain_pred(
     art_img_byte_arr = io.BytesIO()
     art_image.save(art_img_byte_arr, format='jpeg')
 
-    hm_image = base64.b64encode(art_img_byte_arr.getvalue()).decode("utf-8")
+    hm_image = str(base64.b64encode(art_img_byte_arr.getvalue()).decode("utf-8"))
 
     return {
         "hm_img": hm_image,
