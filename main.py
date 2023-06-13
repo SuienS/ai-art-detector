@@ -81,7 +81,7 @@ async def art_brain_pred(
 
     return {
         "hm_img": hm_image,
-        "preds": {
+        "prediction_results": {
             "class1": 40,
             "class2": 30,
             "class3": 20,

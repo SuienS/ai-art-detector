@@ -1,18 +1,26 @@
 const PRED_URL = "/prediction/art"
 const image_upload = document.getElementById("image-file-input")
 const pred_form_element = document.getElementById("pred-form-data");
-const pred_btn_element = document.getElementById("pred-submit");
+const upload_btn_element = document.getElementById("upload-btn");
+const pred_submit_btn_element = document.getElementById("pred-submit-btn");
+const pred_loading_element = document.getElementById("pred-loading-button");
+const pred_res_card_element = document.getElementById("pred-results-card");
 const heatmap_image_element = document.getElementById("heatmap-image");
+const pred_display_elements = Array.from(document.getElementsByClassName("pred-results"));
+const pred_display_fill_elements = Array.from(document.getElementsByClassName("pred-results-fill"));
+const pred_display_label_elements = Array.from(document.getElementsByClassName("pred-results-label"));
 
-image_upload.addEventListener("change", showPreview)
-pred_btn_element.addEventListener("click", sendImage)
+image_upload.addEventListener("change", showImgPreview)
+pred_submit_btn_element.addEventListener("click", sendImage)
 
-function showPreview() {
+function showImgPreview() {
     if (image_upload.files.length > 0) {
         var src = URL.createObjectURL(image_upload.files[0]);
         var preview = document.getElementById("img-upload-file");
         preview.src = src;
-        preview.style.display = "block";
+        preview.style.display = "flex";
+        upload_btn_element.style.display = "none";
+        pred_submit_btn_element.style.display = "flex";
     }
 }
 
@@ -29,20 +37,32 @@ async function postImage(url, predFormData) {
     }); // parses JSON response into native JavaScript objects
 }
 
-function base64encode(str) {
-    return btoa(unescape(encodeURIComponent(str)));
-}
-
 function sendImage() {
 
+    // Displaying loader
+    pred_loading_element.style.display = "flex"
+    pred_submit_btn_element.style.display = "none"
     const predFormData = new FormData(pred_form_element);
-    for (var pair of predFormData.entries()) {
-        console.log(pair[0] + ', ' + pair[1]);
-    }
-    postImage(PRED_URL, predFormData).then((response) => response.json())
+
+    postImage(PRED_URL, predFormData)
+        .then((response) => response.json())
         .then((data) => {
-            console.log(data.preds)
-            heatmap_image_element.src = "data:image/jpeg;base64,"+data.hm_img
+            // Removing Loader
+            pred_loading_element.style.display = "none"
+            upload_btn_element.style.display = "inherit"
+
+            pred_res_card_element.style.display = "flex"
+            heatmap_image_element.src = "data:image/jpeg;base64," + data.hm_img
+
+            let pred_element_index=0
+            for(const class_name in data.prediction_results) {
+                pred_display_label_elements.at(pred_element_index).innerHTML = class_name
+                pred_display_elements.at(pred_element_index).ariaValueNow = data.prediction_results[class_name]
+                pred_display_fill_elements.at(pred_element_index).innerHTML = data.prediction_results[class_name] + "%"
+                pred_display_fill_elements.at(pred_element_index).style.width = data.prediction_results[class_name] + "%"
+
+                pred_element_index++
+            }
         }).catch(console.error);
 }
 
