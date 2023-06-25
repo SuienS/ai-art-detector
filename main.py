@@ -1,3 +1,4 @@
+import torch
 from fastapi import FastAPI, Request, UploadFile, File, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -9,7 +10,10 @@ import os
 from uvicorn import run
 import base64
 
-from PIL import Image, ImageOps
+from PIL import Image
+
+from utils.pred_utils import predict_image, scaler, art_class_labels, device
+from model.model import ArtVisionModel
 
 app = FastAPI()
 
@@ -18,6 +22,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # Load model
+print("[INFO]: Loading model...")
+art_vision_model = ArtVisionModel(len(art_class_labels)).to(device)
+art_vision_model.load_state_dict(torch.load("./model/art_vision_model_state.pt", map_location=device))
+# art_vision_model = torch.load("./model/art_brain_model_scripted.pt", map_location=device)
+art_vision_model.eval()
+print("[INFO]: Model loaded successfully.")
 
 # Configurations
 origins = ["*"]
@@ -38,11 +48,6 @@ async def root(request: Request):
     return templates.TemplateResponse("art_home.html", {"request": request})
 
 
-@app.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
-
-
 @app.post("/prediction/test")
 async def art_brain_test(
         model_type: str = Form()):
@@ -61,6 +66,9 @@ async def art_brain_pred(
 
     art_image.resize((256, 256))
 
+    preds, pred_index, pred_hm_image = predict_image(art_image, art_vision_model, scaler, hm_opacity=0.4)
+    preds = preds.tolist()
+
     # art_image = image.img_to_array(art_image)
     #
     # pred_style_index, fusioned_hm_image = art_utils.make_prediction(
@@ -72,21 +80,26 @@ async def art_brain_pred(
     #
     # fusioned_hm_image = image.array_to_img(fusioned_hm_image)
     #
-    art_image = ImageOps.expand(art_image, border=10, fill=(70, 70, 70))
 
     art_img_byte_arr = io.BytesIO()
-    art_image.save(art_img_byte_arr, format='jpeg')
+    pred_hm_image.save(art_img_byte_arr, format='jpeg')
 
-    hm_image = str(base64.b64encode(art_img_byte_arr.getvalue()).decode("utf-8"))
+    pred_hm_image = str(base64.b64encode(art_img_byte_arr.getvalue()).decode("utf-8"))
+
+    sorted_pred_results = list(sorted(
+        zip(preds[0], art_class_labels),
+        reverse=True
+    ))
+
+    print(sorted_pred_results)
+
+    results_dict = {}
+    for pres_val, art_class in sorted_pred_results:
+        results_dict[art_class] = pres_val
 
     return {
-        "hm_img": hm_image,
-        "prediction_results": {
-            "class1": 40,
-            "class2": 30,
-            "class3": 20,
-            "class4": 10
-        }
+        "hm_img": pred_hm_image,
+        "prediction_results": results_dict
     }
 
 

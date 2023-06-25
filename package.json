@@ -1,0 +1,7 @@
+{
+  "name": "ArtBrainWebApp",
+  "version": "1.0.0",
+  "dependencies": {
+    "onnxruntime-web": "^1.15.1"
+  }
+}

@@ -1,2 +1,17 @@
 # Conda installation issue
 conda config --append channels conda-forge
+
+# PyTorch CPU only installation
+conda install pytorch torchvision cpuonly -c pytorch
+
+# Model saving and loading
+model_scripted = torch.jit.script(model)# Export to TorchScript
+
+model_scripted.save('model_scripted.pt') # Save
+and to load it
+
+model = torch.jit.load('model_scripted.pt')
+model.eval()
+
+
+>tensorflowjs_converter --input_format=tf_saved_model --output_format=tfjs_graph_model --signature_name=serving_default --saved_model=serve ./js_app/model/art_brain_tf_model.pb ./js_app/model/art_brain_tf_model.json

@@ -1,0 +1,5 @@
+/model/*.pt
+
+/model/*.pkl
+
+*.onnx

@@ -1,7 +1,12 @@
+.content {
+    margin-top:auto;
+    margin-bottom:auto;
+    text-align:center;
+    align-content: center;
+}
 .image-upload-form img {
     width: 100%;
     display: none;
-    margin-bottom: 30px;
 }
 
 .image-preview {
