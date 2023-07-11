@@ -1,3 +1,5 @@
+import threading
+
 import torch
 from fastapi import FastAPI, Request, UploadFile, File, Form
 from fastapi.responses import HTMLResponse
@@ -10,9 +12,11 @@ import os
 from uvicorn import run
 import base64
 
+import sys
+
 from PIL import Image
 
-from utils.pred_utils import predict_image, scaler, art_class_labels, device
+from utils.pred_utils import predict_image, art_class_labels, device
 from model.model import ArtVisionModel
 
 app = FastAPI()
@@ -20,11 +24,11 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
-
 # Load model
 print("[INFO]: Loading model...")
 art_vision_model = ArtVisionModel(len(art_class_labels)).to(device)
-art_vision_model.load_state_dict(torch.load("./model/art_vision_model_state.pt", map_location=device))
+art_vision_model.load_state_dict(torch.load("./model/top_art_brain_model_state.pt", map_location=device))
+
 # art_vision_model = torch.load("./model/art_brain_model_scripted.pt", map_location=device)
 art_vision_model.eval()
 print("[INFO]: Model loaded successfully.")
@@ -52,7 +56,7 @@ async def root(request: Request):
 async def art_brain_test(
         model_type: str = Form()):
     return {
-        "mess": "passs"+model_type
+        "mess": "passs" + model_type
     }
 
 
@@ -66,32 +70,21 @@ async def art_brain_pred(
 
     art_image.resize((256, 256))
 
-    preds, pred_index, pred_hm_image = predict_image(art_image, art_vision_model, scaler, hm_opacity=0.4)
-    preds = preds.tolist()
+    print("[INFO]: Prediction Started...")
+    preds, pred_index, pred_hm_image = predict_image(art_image, art_vision_model, hm_opacity=0.4)
+    print("[INFO]: Prediction Completed...")
 
-    # art_image = image.img_to_array(art_image)
-    #
-    # pred_style_index, fusioned_hm_image = art_utils.make_prediction(
-    #     art_image=art_image,
-    #     art_style_model=art_style_model,
-    #     cnn_end_conv_name=cnn_end_conv_name,
-    #     hm_opacity=hm_opacity
-    # )
-    #
-    # fusioned_hm_image = image.array_to_img(fusioned_hm_image)
-    #
+    with io.BytesIO() as art_img_byte_arr:
+        # art_img_byte_arr = io.BytesIO()
+        pred_hm_image.save(art_img_byte_arr, format='jpeg')
 
-    art_img_byte_arr = io.BytesIO()
-    pred_hm_image.save(art_img_byte_arr, format='jpeg')
-
-    pred_hm_image = str(base64.b64encode(art_img_byte_arr.getvalue()).decode("utf-8"))
+        pred_hm_image = str(base64.b64encode(art_img_byte_arr.getvalue()).decode("utf-8"))
 
     sorted_pred_results = list(sorted(
-        zip(preds[0], art_class_labels),
+        zip(preds, art_class_labels),
         reverse=True
     ))
 
-    print(sorted_pred_results)
 
     results_dict = {}
     for pres_val, art_class in sorted_pred_results:
@@ -103,6 +96,13 @@ async def art_brain_pred(
     }
 
 
-if __name__ == "__main__":
+def run_server():
     port = int(os.environ.get('PORT', 8000))
     run(app, host="0.0.0.0", port=port)
+
+
+if __name__ == "__main__":
+    #sys.setrecursionlimit(100000)
+    threading.stack_size(10000000)
+    thread = threading.Thread(target=run_server)
+    thread.start()

@@ -4,8 +4,8 @@
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="onnxruntime-web" level="application" />
     <orderEntry type="library" name="onnxjs" level="application" />
+    <orderEntry type="library" name="onnxruntime-web" level="application" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />

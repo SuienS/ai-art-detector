@@ -59,7 +59,7 @@ function sendImage() {
                 pred_display_label_elements.at(pred_element_index).innerHTML = class_name
 
                 let pred_result = Math.round(data.prediction_results[class_name]*100)
-                pred_display_elements.at(pred_element_index).ariaValueNow = pred_result
+                pred_display_elements.at(pred_element_index).ariaValueNow = pred_result.toString()
                 pred_display_fill_elements.at(pred_element_index).innerHTML = pred_result + "%"
                 pred_display_fill_elements.at(pred_element_index).style.width = pred_result + "%"
 
