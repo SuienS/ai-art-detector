@@ -16,7 +16,7 @@ import sys
 
 from PIL import Image
 
-from utils.pred_utils import predict_image, art_class_labels, device
+from utils.pred_utils import predict_image, art_class_labels, device, diffusion_model_labels
 from model.model import ArtVisionModel
 
 app = FastAPI()
@@ -71,7 +71,7 @@ async def art_brain_pred(
     art_image.resize((256, 256))
 
     print("[INFO]: Prediction Started...")
-    preds, pred_index, pred_hm_image = predict_image(art_image, art_vision_model, hm_opacity=0.4)
+    preds, attribution_scores, sorted_pred_index, pred_hm_image = predict_image(art_image, art_vision_model, hm_opacity=0.6)
     print("[INFO]: Prediction Completed...")
 
     with io.BytesIO() as art_img_byte_arr:
@@ -80,19 +80,22 @@ async def art_brain_pred(
 
         pred_hm_image = str(base64.b64encode(art_img_byte_arr.getvalue()).decode("utf-8"))
 
-    sorted_pred_results = list(sorted(
-        zip(preds, art_class_labels),
-        reverse=True
-    ))
+    results_dict = {
+        art_class_labels[pred_index]: preds[pred_index] for pred_index in sorted_pred_index
+    }
 
+    attribution_scores_dict = {
+        diffusion_model_labels[attr_index]: attribution_scores[attr_index] for attr_index in range(len(attribution_scores))
+    }
 
-    results_dict = {}
-    for pres_val, art_class in sorted_pred_results:
-        results_dict[art_class] = pres_val
+    attribution_scores_dict = {model_name: score for model_name, score in sorted(
+        attribution_scores_dict.items(), key=lambda item: item[1], reverse=True
+    )}
 
     return {
         "hm_img": pred_hm_image,
-        "prediction_results": results_dict
+        "prediction_results": results_dict,
+        "attribution_scores": attribution_scores_dict
     }
 
 
@@ -102,7 +105,7 @@ def run_server():
 
 
 if __name__ == "__main__":
-    #sys.setrecursionlimit(100000)
+    # sys.setrecursionlimit(100000)
     threading.stack_size(10000000)
     thread = threading.Thread(target=run_server)
     thread.start()

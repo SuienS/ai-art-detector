@@ -51,6 +51,12 @@ art_class_labels = [
     'surrealism',
     'ukiyo_e']
 
+diffusion_model_labels = [
+    "latent_diffusion",
+    "standard_diffusion",
+    "human"
+]
+
 
 def get_model_pred(model, art_img_tensor):
     grad_list = []
@@ -94,7 +100,7 @@ def get_model_pred(model, art_img_tensor):
 
     preds = F.softmax(preds.detach(), dim=1).cpu().squeeze(0)
 
-    return preds.tolist(), sorted_pred_indices[0], grad_list, act_list
+    return preds.tolist(), sorted_pred_indices.tolist(), grad_list, act_list
 
 
 def generate_grad_FMCAM(gradients_list, activations_list):
@@ -144,13 +150,22 @@ def predict_image(art_img, model, hm_opacity=0.3) -> (list, int, Image):
     art_img = art_img.resize((img_h, img_h), resample=Image.BICUBIC)
     art_img_tensor = preprocess_transforms(art_img)
 
-    preds, pred_index, gradients, activations = get_model_pred(model, art_img_tensor.to(device))
+    preds, sorted_pred_index, gradients, activations = get_model_pred(model, art_img_tensor.to(device))
     heatmaps = generate_grad_FMCAM(gradients, activations)
 
     hm_overlay = to_pil_image(heatmaps, mode='RGB').resize((img_h, img_h), resample=Image.BICUBIC)
     super_impossed_img = Image.blend(art_img, hm_overlay, alpha=hm_opacity)
 
-    return preds, pred_index, super_impossed_img
+    attribution_scores = get_attribution_scores(preds)
 
-def post_processor():
-    pass
+    return preds, attribution_scores, sorted_pred_index, super_impossed_img
+
+
+def get_attribution_scores(preds):
+    ld_score = np.sum(preds[0:10])
+    sd_score = np.sum(preds[10:20])
+    real_score = np.sum(preds[20:])
+
+    attr_preds = [ld_score, sd_score, real_score]
+
+    return attr_preds
