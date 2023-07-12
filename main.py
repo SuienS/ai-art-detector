@@ -68,10 +68,13 @@ async def art_brain_pred(
 
     art_image = Image.open(io.BytesIO(art_image))
 
-    art_image.resize((256, 256))
+    art_image.resize((224, 224))
+    print(model_type)
 
     print("[INFO]: Prediction Started...")
-    preds, attribution_scores, sorted_pred_index, pred_hm_image = predict_image(art_image, art_vision_model, hm_opacity=0.6)
+    preds, attribution_scores, sorted_pred_index, pred_hm_image = predict_image(
+        art_image, model_type, art_vision_model, hm_opacity=0.6
+    )
     print("[INFO]: Prediction Completed...")
 
     with io.BytesIO() as art_img_byte_arr:
@@ -105,7 +108,6 @@ def run_server():
 
 
 if __name__ == "__main__":
-    # sys.setrecursionlimit(100000)
     threading.stack_size(10000000)
     thread = threading.Thread(target=run_server)
     thread.start()

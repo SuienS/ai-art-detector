@@ -11,6 +11,9 @@ const heatmap_image_element = document.getElementById("heatmap-image");
 const pred_display_elements = Array.from(document.getElementsByClassName("pred-results"));
 const pred_display_fill_elements = Array.from(document.getElementsByClassName("pred-results-fill"));
 const pred_display_label_elements = Array.from(document.getElementsByClassName("pred-results-label"));
+const attr_display_elements = Array.from(document.getElementsByClassName("attr-results"));
+const attr_display_fill_elements = Array.from(document.getElementsByClassName("attr-results-fill"));
+const attr_display_label_elements = Array.from(document.getElementsByClassName("attr-results-label"));
 const JET_RGB_COLORMAP_VALS = [
     0.2422, 0.1504, 0.6603, 0.25039, 0.165, 0.70761, 0.25777,
     0.18178, 0.75114, 0.26473, 0.19776, 0.79521, 0.27065, 0.21468,
@@ -42,37 +45,47 @@ const JET_RGB_COLORMAP_VALS = [
     0.9769, 0.9839, 0.0805
 ];
 
-const CLASSES = [
-    'AI_LD_art_nouveau',
-    'AI_LD_baroque',
-    'AI_LD_expressionism',
-    'AI_LD_impressionism',
-    'AI_LD_post_impressionism',
-    'AI_LD_realism',
-    'AI_LD_renaissance',
-    'AI_LD_romanticism',
-    'AI_LD_surrealism',
-    'AI_LD_ukiyo-e',
-    'AI_SD_art_nouveau',
-    'AI_SD_baroque',
-    'AI_SD_expressionism',
-    'AI_SD_impressionism',
-    'AI_SD_post_impressionism',
-    'AI_SD_realism',
-    'AI_SD_renaissance',
-    'AI_SD_romanticism',
-    'AI_SD_surrealism',
-    'AI_SD_ukiyo-e',
-    'art_nouveau',
-    'baroque',
-    'expressionism',
-    'impressionism',
-    'post_impressionism',
-    'realism',
-    'renaissance',
-    'romanticism',
-    'surrealism',
-    'ukiyo_e']
+const CLASSES_DISP_NAME = {
+    'AI_LD_art_nouveau':"Art Nouveau - LD",
+    'AI_LD_baroque':"Baroque - LD",
+    'AI_LD_expressionism':"Expressionism - LD",
+    'AI_LD_impressionism': "Impressionism - LD",
+    'AI_LD_post_impressionism': "Post Impressionism - LD",
+    'AI_LD_realism': "Realism - LD",
+    'AI_LD_renaissance': "Renaissance - LD",
+    'AI_LD_romanticism': "Romanticism - LD",
+    'AI_LD_surrealism': "Surrealism - LD",
+    'AI_LD_ukiyo-e': "Ukiyo-e  - LD",
+    'AI_SD_art_nouveau': "Art Nouveau - SD",
+    'AI_SD_baroque': "Baroque - SD",
+    'AI_SD_expressionism': "Expressionism - SD",
+    'AI_SD_impressionism': "Impressionism - SD",
+    'AI_SD_post_impressionism': "Post Impressionism - SD",
+    'AI_SD_realism': "Realism - SD",
+    'AI_SD_renaissance': "Renaissance - SD",
+    'AI_SD_romanticism': "Romanticism - SD",
+    'AI_SD_surrealism': "Surrealism - SD",
+    'AI_SD_ukiyo-e': "Ukiyo-e - SD",
+    'art_nouveau': "Art Nouveau",
+    'baroque': "Baroque",
+    'expressionism':"Expressionism",
+    'impressionism': "Impressionism",
+    'post_impressionism': "Post Impressionism",
+    'realism': "Realism",
+    'renaissance': "Renaissance",
+    'romanticism': "Romanticism",
+    'surrealism': "Surrealism",
+    'ukiyo_e': "Ukiyo-e"
+}
+
+const GEN_MODEL_NAME = {
+    "latent_diffusion": "Latent Diffusion",
+    "standard_diffusion": "Standard Diffusion",
+    "human": "Human"
+}
+
+const CLASSES = Object.values(CLASSES_DISP_NAME)
+const GEN_MODELS = Object.values(GEN_MODEL_NAME)
 
 const IMG_SIZE = 224
 
@@ -133,6 +146,7 @@ async function getPredictions() {
 
     // Get model prediction
     const prediction_result = await art_brain_model.predict(image);
+    let attribution_scores = getAttributionScores(prediction_result.dataSync())
 
     // Filtering top 3 predictions
     const {values, indices} = await tf.topk(prediction_result, 3);
@@ -168,6 +182,23 @@ async function getPredictions() {
         pred_display_fill_elements.at(index).style.width = pred_result + "%"
     });
 
+    attribution_scores.forEach(function (pred_value, index) {
+        attr_display_label_elements.at(index).innerHTML = GEN_MODELS[index]
+
+        let pred_result = Math.round(pred_value * 100)
+        attr_display_elements.at(index).ariaValueNow = pred_result.toString()
+        attr_display_fill_elements.at(index).innerHTML = pred_result + "%"
+        attr_display_fill_elements.at(index).style.width = pred_result + "%"
+    });
+
+}
+
+function getAttributionScores(preds) {
+    return [
+        preds.slice(0,10).reduce((pred_sum, pred) => pred_sum + pred, 0),
+        preds.slice(10,20).reduce((pred_sum, pred) => pred_sum + pred, 0),
+        preds.slice(20,30).reduce((pred_sum, pred) => pred_sum + pred, 0)
+    ]
 }
 
 function generateColMap(x) {

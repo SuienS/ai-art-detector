@@ -8,7 +8,6 @@
     <title>Art Brain</title>
 
 
-
     <!-- Bootstrap core CSS -->
     <link href="scripts/css/bootstrap.min.css" rel="stylesheet">
     <link href="scripts/css/app-main.css" rel="stylesheet">
@@ -33,7 +32,7 @@
 
         <!-- imageupload. -->
         <div class="image-upload-form card-body m-3">
-            <div class="image-preview glow-card" style="display: inline-block">
+            <div class="image-preview glow-card" style="display: inline-table">
                 <img id="img-upload-file" class="img-thumbnail" alt="Upload image">
             </div>
 
@@ -52,7 +51,9 @@
                 </div>
                 <br>
 
-                <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#model-info-modal">Model Information</button>
+                <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#model-info-modal">
+                    Model Information
+                </button>
 
                 <br>
                 <br>
@@ -69,8 +70,9 @@
                     Submit for prediction
                 </label>
 
-                <label id="pred-loading-button" style="display: none" class="btn btn-outline-primary btn-lg" type="button"
-                        disabled>
+                <label id="pred-loading-button" style="display: none" class="btn btn-outline-primary btn-lg"
+                       type="button"
+                       disabled>
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     Loading...
                 </label>
@@ -83,78 +85,99 @@
 
         <!-- Results Card -->
         <div id="pred-results-card" class="card glow-card m-3" style="display:none; width: 18rem;">
-
             <img id="heatmap-image" src="">
             <div class="card-body">
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true"
+                                    aria-controls="panelsStayOpen-collapseOne">
+                                <strong>Art Style</strong>
+                            </button>
+                        </h2>
+                        <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show"
+                             aria-labelledby="panelsStayOpen-headingOne" style="">
+                            <div class="accordion-body">
+                                <span class="pred-results-label badge mt-2 text-bg-primary">Primary</span>
+                                <div class="pred-results progress m-1" role="progressbar" aria-label="class1"
+                                     aria-valuenow="25"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <div class="pred-results-fill progress-bar bg-danger bg-gradient"
+                                         style="width: 25%">25%
+                                    </div>
+                                </div>
 
-                <span class="pred-results-label badge mt-2 text-bg-primary">Primary</span>
-                <div class="pred-results progress m-1" role="progressbar" aria-label="class1" aria-valuenow="25"
-                     aria-valuemin="0"
-                     aria-valuemax="100">
-                    <div class="pred-results-fill progress-bar bg-success" style="width: 25%">25%</div>
+                                <span class="pred-results-label badge mt-2 text-bg-primary">Primary</span>
+                                <div class="pred-results progress m-1" role="progressbar" aria-label="class2"
+                                     aria-valuenow="50"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <div class="pred-results-fill progress-bar bg-success bg-gradient text-dark"
+                                         style="width: 50%">
+                                        50%
+                                    </div>
+                                </div>
+
+                                <span class="pred-results-label badge mt-2 text-bg-primary">Primary</span>
+                                <div class="pred-results progress m-1" role="progressbar" aria-label="class3"
+                                     aria-valuenow="75"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <div class="pred-results-fill progress-bar bg-primary bg-gradient text-dark"
+                                         style="width: 75%">
+                                        75%
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="panelsStayOpen-headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false"
+                                    aria-controls="panelsStayOpen-collapseTwo">
+                                <strong>Attribution Scores</strong>
+                            </button>
+                        </h2>
+                        <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse"
+                             aria-labelledby="panelsStayOpen-headingTwo" style="">
+                            <div class="accordion-body">
+                                <span class="attr-results-label badge mt-2 text-bg-primary">Primary</span>
+                                <div class="attr-results progress m-1" role="progressbar" aria-label="class1"
+                                     aria-valuenow="25"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <div class="attr-results-fill progress-bar bg-success" style="width: 25%">25%</div>
+                                </div>
+
+                                <span class="attr-results-label badge mt-2 text-bg-primary">Primary</span>
+                                <div class="attr-results progress m-1" role="progressbar" aria-label="class2"
+                                     aria-valuenow="50"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <div class="attr-results-fill progress-bar bg-info text-dark" style="width: 50%">
+                                        50%
+                                    </div>
+                                </div>
+
+                                <span class="attr-results-label badge mt-2 text-bg-primary">Primary</span>
+                                <div class="attr-results progress m-1" role="progressbar" aria-label="class3"
+                                     aria-valuenow="75"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <div class="attr-results-fill progress-bar bg-warning text-dark" style="width: 75%">
+                                        75%
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <span class="pred-results-label badge mt-2 text-bg-primary">Primary</span>
-                <div class="pred-results progress m-1" role="progressbar" aria-label="class2" aria-valuenow="50"
-                     aria-valuemin="0"
-                     aria-valuemax="100">
-                    <div class="pred-results-fill progress-bar bg-info text-dark" style="width: 50%">50%</div>
-                </div>
-
-                <span class="pred-results-label badge mt-2 text-bg-primary">Primary</span>
-                <div class="pred-results progress m-1" role="progressbar" aria-label="class3" aria-valuenow="75"
-                     aria-valuemin="0"
-                     aria-valuemax="100">
-                    <div class="pred-results-fill progress-bar bg-warning text-dark" style="width: 75%">75%</div>
-                </div>
-
-                <span class="pred-results-label badge mt-2 text-bg-primary">Primary</span>
-                <div class="pred-results progress m-1" role="progressbar" aria-label="class4" aria-valuenow="100"
-                     aria-valuemin="0"
-                     aria-valuemax="100">
-                    <div class="pred-results-fill progress-bar bg-danger" style="width: 100%">100%</div>
-                </div>
-                <span class="pred-results-label badge mt-2 text-bg-primary">Primary</span>
-                <div class="pred-results progress m-1" role="progressbar" aria-label="class1" aria-valuenow="25"
-                     aria-valuemin="0"
-                     aria-valuemax="100">
-                    <div class="pred-results-fill progress-bar bg-success" style="width: 25%">25%</div>
-                </div>
-
-                <span class="pred-results-label badge mt-2 text-bg-primary">Primary</span>
-                <div class="pred-results progress m-1" role="progressbar" aria-label="class2" aria-valuenow="50"
-                     aria-valuemin="0"
-                     aria-valuemax="100">
-                    <div class="pred-results-fill progress-bar bg-info text-dark" style="width: 50%">50%</div>
-                </div>
-
-                <span class="pred-results-label badge mt-2 text-bg-primary">Primary</span>
-                <div class="pred-results progress m-1" role="progressbar" aria-label="class3" aria-valuenow="75"
-                     aria-valuemin="0"
-                     aria-valuemax="100">
-                    <div class="pred-results-fill progress-bar bg-warning text-dark" style="width: 75%">75%</div>
-                </div>
-
-                <span class="pred-results-label badge mt-2 text-bg-primary">Primary</span>
-                <div class="pred-results progress m-1" role="progressbar" aria-label="class4" aria-valuenow="100"
-                     aria-valuemin="0"
-                     aria-valuemax="100">
-                    <div class="pred-results-fill progress-bar bg-danger" style="width: 100%">100%</div>
-                </div>
-
-                <span class="pred-results-label badge mt-2 text-bg-primary">Primary</span>
-                <div class="pred-results progress m-1" role="progressbar" aria-label="class3" aria-valuenow="75"
-                     aria-valuemin="0"
-                     aria-valuemax="100">
-                    <div class="pred-results-fill progress-bar bg-warning text-dark" style="width: 75%">75%</div>
-                </div>
-
-                <span class="pred-results-label badge mt-2 text-bg-primary">Primary</span>
-                <div class="pred-results progress m-1" role="progressbar" aria-label="class4" aria-valuenow="100"
-                     aria-valuemin="0"
-                     aria-valuemax="100">
-                    <div class="pred-results-fill progress-bar bg-danger" style="width: 100%">100%</div>
-                </div>
 
             </div>
         </div>

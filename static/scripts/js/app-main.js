@@ -10,9 +10,52 @@ const heatmap_image_element = document.getElementById("heatmap-image");
 const pred_display_elements = Array.from(document.getElementsByClassName("pred-results"));
 const pred_display_fill_elements = Array.from(document.getElementsByClassName("pred-results-fill"));
 const pred_display_label_elements = Array.from(document.getElementsByClassName("pred-results-label"));
+const attr_display_elements = Array.from(document.getElementsByClassName("attr-results"));
+const attr_display_fill_elements = Array.from(document.getElementsByClassName("attr-results-fill"));
+const attr_display_label_elements = Array.from(document.getElementsByClassName("attr-results-label"));
 
 image_upload.addEventListener("change", showImgPreview)
 pred_submit_btn_element.addEventListener("click", sendImage)
+
+
+const CLASSES_DISP_NAME = {
+    'AI_LD_art_nouveau':"Art Nouveau - LD",
+    'AI_LD_baroque':"Baroque - LD",
+    'AI_LD_expressionism':"Expressionism - LD",
+    'AI_LD_impressionism': "Impressionism - LD",
+    'AI_LD_post_impressionism': "Post Impressionism - LD",
+    'AI_LD_realism': "Realism - LD",
+    'AI_LD_renaissance': "Renaissance - LD",
+    'AI_LD_romanticism': "Romanticism - LD",
+    'AI_LD_surrealism': "Surrealism - LD",
+    'AI_LD_ukiyo-e': "Ukiyo-e  - LD",
+    'AI_SD_art_nouveau': "Art Nouveau - SD",
+    'AI_SD_baroque': "Baroque - SD",
+    'AI_SD_expressionism': "Expressionism - SD",
+    'AI_SD_impressionism': "Impressionism - SD",
+    'AI_SD_post_impressionism': "Post Impressionism - SD",
+    'AI_SD_realism': "Realism - SD",
+    'AI_SD_renaissance': "Renaissance - SD",
+    'AI_SD_romanticism': "Romanticism - SD",
+    'AI_SD_surrealism': "Surrealism - SD",
+    'AI_SD_ukiyo-e': "Ukiyo-e - SD",
+    'art_nouveau': "Art Nouveau",
+    'baroque': "Baroque",
+    'expressionism':"Expressionism",
+    'impressionism': "Impressionism",
+    'post_impressionism': "Post Impressionism",
+    'realism': "Realism",
+    'renaissance': "Renaissance",
+    'romanticism': "Romanticism",
+    'surrealism': "Surrealism",
+    'ukiyo_e': "Ukiyo-e"
+}
+
+const GEN_MODEL_NAME = {
+    "latent_diffusion": "Latent Diffusion",
+    "standard_diffusion": "Standard Diffusion",
+    "human": "Human"
+}
 
 function showImgPreview() {
     if (image_upload.files.length > 0) {
@@ -56,14 +99,30 @@ function sendImage() {
 
             let pred_element_index=0
             for(const class_name in data.prediction_results) {
-                pred_display_label_elements.at(pred_element_index).innerHTML = class_name
+                pred_display_label_elements.at(pred_element_index).innerHTML = CLASSES_DISP_NAME[class_name]
 
-                let pred_result = Math.round(data.prediction_results[class_name]*100)
+                let pred_result = Math.floor(data.prediction_results[class_name]*100)
                 pred_display_elements.at(pred_element_index).ariaValueNow = pred_result.toString()
                 pred_display_fill_elements.at(pred_element_index).innerHTML = pred_result + "%"
                 pred_display_fill_elements.at(pred_element_index).style.width = pred_result + "%"
 
                 pred_element_index++
+
+                if (pred_element_index >= 3){
+                    break
+                }
+            }
+
+            let attr_element_index=0
+            for(const model_name in data.attribution_scores) {
+                attr_display_label_elements.at(attr_element_index).innerHTML = GEN_MODEL_NAME[model_name]
+
+                let attr_result = Math.floor(data.attribution_scores[model_name]*100)
+                attr_display_elements.at(attr_element_index).ariaValueNow = attr_result.toString()
+                attr_display_fill_elements.at(attr_element_index).innerHTML = attr_result + "%"
+                attr_display_fill_elements.at(attr_element_index).style.width = attr_result + "%"
+
+                attr_element_index++
             }
         }).catch(console.error);
 }

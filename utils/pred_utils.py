@@ -57,6 +57,8 @@ diffusion_model_labels = [
     "human"
 ]
 
+FM_CAM_TYPE = "FM-CAM"
+
 
 def get_model_pred(model, art_img_tensor):
     grad_list = []
@@ -103,7 +105,7 @@ def get_model_pred(model, art_img_tensor):
     return preds.tolist(), sorted_pred_indices.tolist(), grad_list, act_list
 
 
-def generate_grad_FMCAM(gradients_list, activations_list):
+def generate_grad_fmcam(gradients_list, activations_list):
     heatmaps = []
 
     for index, activations in enumerate(activations_list):
@@ -146,14 +148,88 @@ def generate_grad_FMCAM(gradients_list, activations_list):
     return heatmaps.detach().cpu()
 
 
-def predict_image(art_img, model, hm_opacity=0.3) -> (list, int, Image):
+def get_model_pred_gcam(model, art_img_tensor):
+    for train_param in model.parameters():
+        train_param.requires_grad = True
+
+    gradients = None
+    activations = None
+
+    def hook_backward(module, grad_input, grad_output):
+        nonlocal gradients
+        gradients = grad_output
+
+    def hook_forward(module, args, output):
+        nonlocal activations
+        activations = output
+
+    hook_backward = model.attention_block.register_full_backward_hook(hook_backward, prepend=False)
+    hook_forward = model.attention_block.register_forward_hook(hook_forward, prepend=False)
+
+    model.eval()
+
+    preds = model(art_img_tensor.unsqueeze(0))
+
+    # Sort prediction indices
+    sorted_pred_indices = torch.argsort(preds, dim=1, descending=True).squeeze(0)
+
+    preds[:, sorted_pred_indices[0]].backward()
+
+    hook_backward.remove()
+    hook_forward.remove()
+
+    for train_param in model.parameters():
+        train_param.requires_grad = False
+
+    preds = F.softmax(preds.detach(), dim=1).cpu().squeeze(0)
+    print(gradients)
+    return preds.tolist(), sorted_pred_indices.tolist(), gradients, activations
+
+
+def generate_grad_map_gcam(gradients, activations):
+    avg_pooled_gradients = torch.mean(
+        gradients[0],  # Size [1, 1024, 7, 7]
+        dim=[0, 2, 3]
+    )
+
+    # Weighting acitvation features (channels) using its related calculated Gradient
+    for i in range(activations.size()[1]):
+        activations[:, i, :, :] *= avg_pooled_gradients[i]
+
+    # average the channels of the activations
+    heatmap = torch.mean(activations, dim=1).squeeze()
+
+    #    heatmap = F.normalize(heatmap)
+
+    # relu on top of the heatmap
+    heatmap = F.relu(heatmap)
+
+    # Min-max normalization of the heatmap
+    heatmap = (heatmap - torch.min(heatmap)) / (torch.max(heatmap) - torch.min(heatmap))
+
+    return heatmap.detach()
+
+
+def predict_image(art_img, hm_type, model, hm_opacity=0.3) -> (list, int, Image):
     art_img = art_img.resize((img_h, img_h), resample=Image.BICUBIC)
     art_img_tensor = preprocess_transforms(art_img)
+    if hm_type == FM_CAM_TYPE:
+        preds, sorted_pred_index, gradients, activations = get_model_pred(model, art_img_tensor.to(device))
+        heatmaps = generate_grad_fmcam(gradients, activations)
 
-    preds, sorted_pred_index, gradients, activations = get_model_pred(model, art_img_tensor.to(device))
-    heatmaps = generate_grad_FMCAM(gradients, activations)
+        hm_overlay = to_pil_image(heatmaps, mode='RGB').resize((img_h, img_h), resample=Image.BICUBIC)
+    else:
+        preds, sorted_pred_index, gradients, activations = get_model_pred_gcam(model, art_img_tensor.to(device))
+        heatmap = generate_grad_map_gcam(gradients, activations)
 
-    hm_overlay = to_pil_image(heatmaps, mode='RGB').resize((img_h, img_h), resample=Image.BICUBIC)
+        hm_overlay = to_pil_image(heatmap.detach().cpu(), mode='F').resize((img_h, img_h), resample=Image.BICUBIC)
+
+        # Jet Colormap
+        col_map = colormaps['YlOrRd']
+        hm_overlay = Image.fromarray(
+            (255 * col_map(np.asarray(hm_overlay) ** 2)[:, :, :3]).astype(np.uint8)
+        )
+
     super_impossed_img = Image.blend(art_img, hm_overlay, alpha=hm_opacity)
 
     attribution_scores = get_attribution_scores(preds)
