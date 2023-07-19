@@ -1,9 +1,10 @@
 .content {
-    margin-top:auto;
-    margin-bottom:auto;
-    text-align:center;
+    margin-top: auto;
+    margin-bottom: auto;
+    text-align: center;
     align-content: center;
 }
+
 .image-upload-form img {
     width: 100%;
     display: none;
@@ -62,4 +63,18 @@
     100% {
         background-position: 0 0;
     }
+}
+
+.hm-background {
+    width: 100%;
+    z-index: 1;
+}
+
+.hm-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    z-index: 2;
+    opacity: 0.6;
 }

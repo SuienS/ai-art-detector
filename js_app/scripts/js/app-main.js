@@ -8,6 +8,7 @@ const image_preview = document.getElementById("img-upload-file")
 const image_preview_canvas = document.getElementById("image-upload-canvas")
 const pred_res_card_element = document.getElementById("pred-results-card");
 const heatmap_image_element = document.getElementById("heatmap-image");
+const heatmap_element = document.getElementById("heatmap");
 const pred_display_elements = Array.from(document.getElementsByClassName("pred-results"));
 const pred_display_fill_elements = Array.from(document.getElementsByClassName("pred-results-fill"));
 const pred_display_label_elements = Array.from(document.getElementsByClassName("pred-results-label"));
@@ -66,16 +67,16 @@ const CLASSES_DISP_NAME = {
     'AI_SD_romanticism': "Romanticism - SD",
     'AI_SD_surrealism': "Surrealism - SD",
     'AI_SD_ukiyo-e': "Ukiyo-e - SD",
-    'art_nouveau': "Art Nouveau",
-    'baroque': "Baroque",
-    'expressionism':"Expressionism",
-    'impressionism': "Impressionism",
-    'post_impressionism': "Post Impressionism",
-    'realism': "Realism",
-    'renaissance': "Renaissance",
-    'romanticism': "Romanticism",
-    'surrealism': "Surrealism",
-    'ukiyo_e': "Ukiyo-e"
+    'art_nouveau': "Art Nouveau - Human",
+    'baroque': "Baroque - Human",
+    'expressionism':"Expressionism - Human",
+    'impressionism': "Impressionism - Human",
+    'post_impressionism': "Post Impressionism - Human",
+    'realism': "Realism - Human",
+    'renaissance': "Renaissance - Human",
+    'romanticism': "Romanticism - Human",
+    'surrealism': "Surrealism - Human",
+    'ukiyo_e': "Ukiyo-e - Human"
 }
 
 const GEN_MODEL_NAME = {
@@ -155,22 +156,31 @@ async function getPredictions() {
     let top_pred_indices = indices.dataSync()
     let pred_results = prediction_result.dataSync() // TODO: Use for calculating the attribution scores
 
-    let pred_heatmap = getGradCamPrediction(art_brain_model, top_pred_indices[0], image, org_image).squeeze()
+    let hm_pred_res = getGradCamPrediction(art_brain_model, top_pred_indices[0], image, org_image)
+    let pred_heatmap = hm_pred_res[1].squeeze()
+    let heatmap = hm_pred_res[0].squeeze()
 
     // Removing Loader
     pred_loading_element.style.display = "none"
     upload_btn_element.style.display = "block"
 
-    // Draw heatmap on a canvas
+    // Draw heatmap image on a canvas
     const hm_canvas = document.createElement('canvas');
     hm_canvas.width = pred_heatmap.shape.width
     hm_canvas.height = pred_heatmap.shape.height
     await tf.browser.toPixels(pred_heatmap, hm_canvas);
 
+    // Draw heatmap on a canvas
+    const heatmap_canvas = document.createElement('canvas');
+    heatmap_canvas.width = heatmap.shape.width
+    heatmap_canvas.height = heatmap.shape.height
+    await tf.browser.toPixels(heatmap, heatmap_canvas);
+
     pred_res_card_element.style.display = "flex"
 
     // Conversion to base64
     heatmap_image_element.src = hm_canvas.toDataURL("image/jpeg")
+    heatmap_element.src = heatmap_canvas.toDataURL("image/jpeg")
 
     // Set the UI values
     top_pred_values.forEach(function (pred_value, index) {
@@ -230,7 +240,7 @@ function generateColMap(x) {
 }
 // GradCAM: https://doi.org/10.1109/ICCV.2017.74
 // TF GradCAM: https://github.com/tensorflow/tfjs-examples/tree/master/visualize-convnet
-function getGradCamPrediction(model, pred_class_index, input_image, org_image, overlayFactor = 1) {
+function getGradCamPrediction(model, pred_class_index, input_image, org_image = 1) {
 
     let last_conv_layer_index = 151
     const last_conv_layer = model.layers[last_conv_layer_index];
@@ -293,9 +303,10 @@ function getGradCamPrediction(model, pred_class_index, input_image, org_image, o
         // into a color (RGB) one through this function call.
         grad_heatmap = generateColMap(grad_heatmap);
 
-        // To form the final output, overlay the color heat map on the input image.
-        grad_heatmap = grad_heatmap.mul(overlayFactor).add(org_image.div(255));
-        return grad_heatmap.div(grad_heatmap.max()).relu();//.mul(255);
+        grad_heatmap = grad_heatmap.div(grad_heatmap.max()).relu()
+
+        org_image = org_image.div(255);
+        return [grad_heatmap, org_image];//.mul(255);
     });
 }
 

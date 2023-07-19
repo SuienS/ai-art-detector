@@ -63,3 +63,20 @@
         background-position: 0 0;
     }
 }
+
+/*
+Heatmap display style
+*/
+.hm-background {
+    width: 100%;
+    z-index: 1;
+}
+
+.hm-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    z-index: 2;
+    opacity: 0.6;
+}

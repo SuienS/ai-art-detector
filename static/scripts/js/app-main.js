@@ -7,6 +7,7 @@ const pred_submit_btn_element = document.getElementById("pred-submit-btn");
 const pred_loading_element = document.getElementById("pred-loading-button");
 const pred_res_card_element = document.getElementById("pred-results-card");
 const heatmap_image_element = document.getElementById("heatmap-image");
+const heatmap_element = document.getElementById("heatmap");
 const pred_display_elements = Array.from(document.getElementsByClassName("pred-results"));
 const pred_display_fill_elements = Array.from(document.getElementsByClassName("pred-results-fill"));
 const pred_display_label_elements = Array.from(document.getElementsByClassName("pred-results-label"));
@@ -39,16 +40,16 @@ const CLASSES_DISP_NAME = {
     'AI_SD_romanticism': "Romanticism - SD",
     'AI_SD_surrealism': "Surrealism - SD",
     'AI_SD_ukiyo-e': "Ukiyo-e - SD",
-    'art_nouveau': "Art Nouveau",
-    'baroque': "Baroque",
-    'expressionism':"Expressionism",
-    'impressionism': "Impressionism",
-    'post_impressionism': "Post Impressionism",
-    'realism': "Realism",
-    'renaissance': "Renaissance",
-    'romanticism': "Romanticism",
-    'surrealism': "Surrealism",
-    'ukiyo_e': "Ukiyo-e"
+    'art_nouveau': "Art Nouveau - Human",
+    'baroque': "Baroque - Human",
+    'expressionism':"Expressionism - Human",
+    'impressionism': "Impressionism - Human",
+    'post_impressionism': "Post Impressionism - Human",
+    'realism': "Realism - Human",
+    'renaissance': "Renaissance - Human",
+    'romanticism': "Romanticism - Human",
+    'surrealism': "Surrealism - Human",
+    'ukiyo_e': "Ukiyo-e - Human"
 }
 
 const GEN_MODEL_NAME = {
@@ -96,6 +97,7 @@ function sendImage() {
 
             pred_res_card_element.style.display = "flex"
             heatmap_image_element.src = "data:image/jpeg;base64," + data.hm_img
+            heatmap_element.src = "data:image/jpeg;base64," + data.heatmap
 
             let pred_element_index=0
             for(const class_name in data.prediction_results) {

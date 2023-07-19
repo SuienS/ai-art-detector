@@ -6,39 +6,43 @@ from torchvision.models import ConvNeXt_Base_Weights
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-class AttentionBlock(nn.Module):
+class AttentionModule(nn.Module):
     """
-    Implements Squeeze-and-Excitation Networks
-    https://doi.org/10.1109/CVPR.2018.00745
+    The block prioritises the feature map by weighting them based on their importance to the final prediction.
+
+    The block utilises Squeeze-and-Excitation Networks (https://doi.org/10.1109/CVPR.2018.00745) in the
+    weighting mechanism.
     """
 
-    def __init__(self, tot_channels, reduction):
-        super(AttentionBlock, self).__init__()
+    def __init__(self, tot_channels, reduction_factor):
+        super(AttentionModule, self).__init__()
 
         # Pooling layer
         self.avgpool = nn.AdaptiveAvgPool2d(1)
 
         # SE FCN
         self.fcn = nn.Sequential(
-            nn.Linear(tot_channels, tot_channels // reduction, bias=False),
+            nn.Linear(tot_channels, tot_channels // reduction_factor, bias=False),
             nn.ReLU(inplace=True),
-            nn.Linear(tot_channels // reduction, tot_channels, bias=False),
+            nn.Linear(tot_channels // reduction_factor, tot_channels, bias=False),
             nn.Sigmoid()
         )
 
     def forward(self, x):
+        # Concatenation of the feature maps
         x = torch.cat(x, dim=1)
+
         n_batches, n_channels, _, _ = x.size()
         y = self.avgpool(x).view(n_batches, n_channels)
         y = self.fcn(y).view(n_batches, n_channels, 1, 1)
 
-        return x * y.expand_as(x)  # Per channel multiplication
+        return x * y.expand_as(x)  # Per channel weighting
 
 
-class ArtVisionModel(nn.Module):
+class AttentionConvNeXt(nn.Module):
 
     def __init__(self, n_classes, n_art_img_features=9):
-        super(ArtVisionModel, self).__init__()
+        super(AttentionConvNeXt, self).__init__()
 
         # Pretrained ConvNeXt
         self.convnext = convnext_base(weights=ConvNeXt_Base_Weights.DEFAULT)
@@ -59,8 +63,8 @@ class ArtVisionModel(nn.Module):
 
         self.low_feat_pooling = self.convnext.features[6]
 
-        # Attention block
-        self.attention_block = AttentionBlock(3072, 16)
+        # Attention module
+        self.attention_module = AttentionModule(3072, 16)
 
         # Classifier portion
         self.classifier = nn.Sequential(
@@ -96,7 +100,7 @@ class ArtVisionModel(nn.Module):
 
         x_low = self.low_feat_pooling(x_low)
 
-        x = self.attention_block((x_high, x_mid, x_low))
+        x = self.attention_module((x_high, x_mid, x_low))
 
         # Classifier
         x = self.classifier(x)

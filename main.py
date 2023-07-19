@@ -9,15 +9,17 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import io
 import os
+import pickle
+
+from torchvision import models
 from uvicorn import run
 import base64
 
-import sys
-
 from PIL import Image
 
-from utils.pred_utils import predict_image, art_class_labels, device, diffusion_model_labels
-from model.model import ArtVisionModel
+from constants import ART_CLASS_LABELS, DIFFUSION_MODEL_LABELS
+from utils.inferencing import InferencingService
+from model.model import AttentionConvNeXt
 
 app = FastAPI()
 
@@ -26,11 +28,32 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 # Load model
 print("[INFO]: Loading model...")
-art_vision_model = ArtVisionModel(len(art_class_labels)).to(device)
-art_vision_model.load_state_dict(torch.load("./model/top_art_brain_model_state.pt", map_location=device))
 
+imagenet_weights = models.ConvNeXt_Base_Weights.DEFAULT
+
+# preprocess_transforms = imagenet_weights.transforms()
+# with open('./model/preprocess_transforms.pt', 'wb') as f:
+#     pickle.dump(preprocess_transforms, f)
+
+with open('./model/preprocess_transforms.pt', 'rb') as f:
+    preprocess_transforms = pickle.load(f)
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+art_brain_model = AttentionConvNeXt(len(ART_CLASS_LABELS)).to(device)
+# art_vision_model.load_state_dict(torch.load("./model/top_art_brain_model.pt", map_location=device)['model_state_dict'])
+# torch.save(art_vision_model.state_dict(), "./model/top_art_brain_model_state.pt")
+art_brain_model.load_state_dict(torch.load("./model/artbrain_top_model_weights.pt", map_location=device))
 # art_vision_model = torch.load("./model/art_brain_model_scripted.pt", map_location=device)
-art_vision_model.eval()
+art_brain_model.eval()
+
+inferencing_service = InferencingService(
+    model=art_brain_model,
+    imagenet_weights=imagenet_weights,
+    preprocess_transforms=preprocess_transforms,
+    device=device
+)
+
 print("[INFO]: Model loaded successfully.")
 
 # Configurations
@@ -54,9 +77,9 @@ async def root(request: Request):
 
 @app.post("/prediction/test")
 async def art_brain_test(
-        model_type: str = Form()):
+        test_string: str = Form()):
     return {
-        "mess": "passs" + model_type
+        "message": "Pass: " + test_string
     }
 
 
@@ -68,27 +91,33 @@ async def art_brain_pred(
 
     art_image = Image.open(io.BytesIO(art_image))
 
-    art_image.resize((224, 224))
-    print(model_type)
+    art_image.resize((320, 320))
 
     print("[INFO]: Prediction Started...")
-    preds, attribution_scores, sorted_pred_index, pred_hm_image = predict_image(
-        art_image, model_type, art_vision_model, hm_opacity=0.6
+    print("[INFO]: Heatmap type: ", model_type)
+
+    preds, attribution_scores, sorted_pred_index, pred_hm_image, heatmap = inferencing_service.predict_image(
+        art_image, model_type
     )
     print("[INFO]: Prediction Completed...")
 
     with io.BytesIO() as art_img_byte_arr:
-        # art_img_byte_arr = io.BytesIO()
         pred_hm_image.save(art_img_byte_arr, format='jpeg')
 
         pred_hm_image = str(base64.b64encode(art_img_byte_arr.getvalue()).decode("utf-8"))
 
+    with io.BytesIO() as hm_byte_arr:
+        heatmap.save(hm_byte_arr, format='jpeg')
+
+        heatmap = str(base64.b64encode(hm_byte_arr.getvalue()).decode("utf-8"))
+
     results_dict = {
-        art_class_labels[pred_index]: preds[pred_index] for pred_index in sorted_pred_index
+        ART_CLASS_LABELS[pred_index]: preds[pred_index] for pred_index in sorted_pred_index
     }
 
     attribution_scores_dict = {
-        diffusion_model_labels[attr_index]: attribution_scores[attr_index] for attr_index in range(len(attribution_scores))
+        DIFFUSION_MODEL_LABELS[attr_index]: attribution_scores[attr_index] for attr_index in
+        range(len(attribution_scores))
     }
 
     attribution_scores_dict = {model_name: score for model_name, score in sorted(
@@ -97,6 +126,7 @@ async def art_brain_pred(
 
     return {
         "hm_img": pred_hm_image,
+        "heatmap": heatmap,
         "prediction_results": results_dict,
         "attribution_scores": attribution_scores_dict
     }
