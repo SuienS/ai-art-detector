@@ -20,9 +20,9 @@ pred_submit_btn_element.addEventListener("click", sendImage)
 
 
 const CLASSES_DISP_NAME = {
-    'AI_LD_art_nouveau':"Art Nouveau - LD",
-    'AI_LD_baroque':"Baroque - LD",
-    'AI_LD_expressionism':"Expressionism - LD",
+    'AI_LD_art_nouveau': "Art Nouveau - LD",
+    'AI_LD_baroque': "Baroque - LD",
+    'AI_LD_expressionism': "Expressionism - LD",
     'AI_LD_impressionism': "Impressionism - LD",
     'AI_LD_post_impressionism': "Post Impressionism - LD",
     'AI_LD_realism': "Realism - LD",
@@ -42,7 +42,7 @@ const CLASSES_DISP_NAME = {
     'AI_SD_ukiyo-e': "Ukiyo-e - SD",
     'art_nouveau': "Art Nouveau - Human",
     'baroque': "Baroque - Human",
-    'expressionism':"Expressionism - Human",
+    'expressionism': "Expressionism - Human",
     'impressionism': "Impressionism - Human",
     'post_impressionism': "Post Impressionism - Human",
     'realism': "Realism - Human",
@@ -58,10 +58,22 @@ const GEN_MODEL_NAME = {
     "human": "Human"
 }
 
+const FILE_SIZE_10_MB_BYTES = 10485800
+
+function isValidImage(image_element) {
+    let isValid = true;
+
+    if (image_element.size > FILE_SIZE_10_MB_BYTES) {
+        alert("Uploaded image is too big. Maximum supported size is 10MB.");
+        isValid = false
+    }
+
+    return isValid
+}
+
 function showImgPreview() {
-    if (image_upload.files.length > 0) {
-        var src = URL.createObjectURL(image_upload.files[0]);
-        image_preview.src = src;
+    if (image_upload.files.length > 0 && isValidImage(image_upload.files[0])) {
+        image_preview.src = URL.createObjectURL(image_upload.files[0]);
         image_preview.style.display = "inline-block";
         upload_btn_element.style.display = "none";
         pred_submit_btn_element.style.display = "block";
@@ -91,6 +103,13 @@ function sendImage() {
     postImage(PRED_URL, predFormData)
         .then((response) => response.json())
         .then((data) => {
+            if ("error" in data) {
+                // Server error
+                alert("Error occurred! See Console log for more information. Reload website to retry.")
+                console.log(data.error)
+                pred_loading_element.style.display = "none"
+                return
+            }
             // Removing Loader
             pred_loading_element.style.display = "none"
             upload_btn_element.style.display = "block"
@@ -99,27 +118,27 @@ function sendImage() {
             heatmap_image_element.src = "data:image/jpeg;base64," + data.hm_img
             heatmap_element.src = "data:image/jpeg;base64," + data.heatmap
 
-            let pred_element_index=0
-            for(const class_name in data.prediction_results) {
+            let pred_element_index = 0
+            for (const class_name in data.prediction_results) {
                 pred_display_label_elements.at(pred_element_index).innerHTML = CLASSES_DISP_NAME[class_name]
 
-                let pred_result = Math.floor(data.prediction_results[class_name]*100)
+                let pred_result = Math.floor(data.prediction_results[class_name] * 100)
                 pred_display_elements.at(pred_element_index).ariaValueNow = pred_result.toString()
                 pred_display_fill_elements.at(pred_element_index).innerHTML = pred_result + "%"
                 pred_display_fill_elements.at(pred_element_index).style.width = pred_result + "%"
 
                 pred_element_index++
 
-                if (pred_element_index >= 3){
+                if (pred_element_index >= 3) {
                     break
                 }
             }
 
-            let attr_element_index=0
-            for(const model_name in data.attribution_scores) {
+            let attr_element_index = 0
+            for (const model_name in data.attribution_scores) {
                 attr_display_label_elements.at(attr_element_index).innerHTML = GEN_MODEL_NAME[model_name]
 
-                let attr_result = Math.floor(data.attribution_scores[model_name]*100)
+                let attr_result = Math.floor(data.attribution_scores[model_name] * 100)
                 attr_display_elements.at(attr_element_index).ariaValueNow = attr_result.toString()
                 attr_display_fill_elements.at(attr_element_index).innerHTML = attr_result + "%"
                 attr_display_fill_elements.at(attr_element_index).style.width = attr_result + "%"

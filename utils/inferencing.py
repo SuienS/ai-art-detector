@@ -4,41 +4,46 @@ from torchvision.transforms.functional import to_pil_image
 
 from matplotlib import colormaps
 
-from constants import FM_CAM_TYPE, G_CAM_TYPE, IMG_H, IMG_W
-from service.localisation import generate_fmgcam, generate_gcam
-from service.prediction import get_model_pred
+from constants import FM_G_CAM_TYPE, G_CAM_TYPE, IMG_H, IMG_W
+from service.localisation import LocalisationService
+from service.prediction import PredictionService
 from utils.pred_utils import get_attribution_scores
 
 
 class InferencingService:
-    def __init__(self, model, imagenet_weights, preprocess_transforms, device):
+    def __init__(self, model, preprocess_transforms, device):
         self.model = model
-        self.imagenet_weights = imagenet_weights
         self.preprocess_transforms = preprocess_transforms
         self.device = device
+        self.prediction_service = PredictionService(
+            model=model,
+            last_conv_layer=model.attention_module
+        )
+        self.localisation_service = LocalisationService()
 
     def predict_image(self, art_img, hm_type, hm_opacity=None) -> (list, int, Image):
-        global preds, hm_overlay, sorted_pred_index
+        preds, hm_overlay, sorted_pred_index = None, None, None
 
-        art_img = art_img.resize((IMG_H, IMG_W), resample=Image.BICUBIC)
+        art_img = art_img.resize((IMG_H, IMG_W), resample=Image.BICUBIC).convert('RGB')
         art_img_tensor = self.preprocess_transforms(art_img)
         # import matplotlib.pyplot as plt
         # plt.imshow(art_img_tensor.squeeze().permute(1, 2, 0), cmap="gray")
         # plt.savefig('./processed_image.jpg')
 
-        if hm_type == FM_CAM_TYPE:
-            preds, sorted_pred_index, grad_list, act_list = get_model_pred(self.model,
-                                                                           art_img_tensor.to(self.device),
-                                                                           FM_CAM_TYPE)
-            heatmaps = generate_fmgcam(grad_list, act_list)
+        if hm_type == FM_G_CAM_TYPE:
+            preds, sorted_pred_index, grad_list, act_list = self.prediction_service.get_model_pred(
+                art_img_tensor.to(self.device),
+                FM_G_CAM_TYPE
+            )
+            heatmaps = self.localisation_service.generate_fmgcam(grad_list, act_list)
 
             hm_overlay = to_pil_image(heatmaps, mode='RGB').resize((IMG_H, IMG_H), resample=Image.BICUBIC)
 
         elif hm_type == G_CAM_TYPE:
-            preds, sorted_pred_index, gradients, activations = get_model_pred(self.model,
-                                                                              art_img_tensor.to(self.device),
-                                                                              G_CAM_TYPE)
-            heatmap = generate_gcam(gradients[0], activations[0])
+            preds, sorted_pred_index, gradients, activations = self.prediction_service.get_model_pred(
+                art_img_tensor.to(self.device),
+                G_CAM_TYPE)
+            heatmap = self.localisation_service.generate_gcam(gradients[0], activations[0])
 
             hm_overlay = to_pil_image(heatmap.detach().cpu(), mode='F').resize((IMG_H, IMG_H), resample=Image.BICUBIC)
 

@@ -11,7 +11,6 @@ import io
 import os
 import pickle
 
-from torchvision import models
 from uvicorn import run
 import base64
 
@@ -29,7 +28,6 @@ templates = Jinja2Templates(directory="templates")
 # Load model
 print("[INFO]: Loading model...")
 
-imagenet_weights = models.ConvNeXt_Base_Weights.DEFAULT
 
 # preprocess_transforms = imagenet_weights.transforms()
 # with open('./model/preprocess_transforms.pt', 'wb') as f:
@@ -49,7 +47,6 @@ art_brain_model.eval()
 
 inferencing_service = InferencingService(
     model=art_brain_model,
-    imagenet_weights=imagenet_weights,
     preprocess_transforms=preprocess_transforms,
     device=device
 )
@@ -85,51 +82,53 @@ async def art_brain_test(
 
 @app.post("/prediction/art")
 async def art_brain_pred(
-        model_type: str = Form(),
+        heatmap_type: str = Form(),
         img_file: UploadFile = File(...)):
-    art_image = await img_file.read()
+    try:
+        art_image = await img_file.read()
 
-    art_image = Image.open(io.BytesIO(art_image))
+        art_image = Image.open(io.BytesIO(art_image))
 
-    art_image.resize((320, 320))
+        print("[INFO]: Prediction Started...")
+        print("[INFO]: Heatmap type: ", heatmap_type)
 
-    print("[INFO]: Prediction Started...")
-    print("[INFO]: Heatmap type: ", model_type)
+        preds, attribution_scores, sorted_pred_index, pred_hm_image, heatmap = inferencing_service.predict_image(
+            art_image, heatmap_type
+        )
+        print("[INFO]: Prediction Completed...")
 
-    preds, attribution_scores, sorted_pred_index, pred_hm_image, heatmap = inferencing_service.predict_image(
-        art_image, model_type
-    )
-    print("[INFO]: Prediction Completed...")
+        with io.BytesIO() as art_img_byte_arr:
+            pred_hm_image.save(art_img_byte_arr, format='jpeg')
 
-    with io.BytesIO() as art_img_byte_arr:
-        pred_hm_image.save(art_img_byte_arr, format='jpeg')
+            pred_hm_image = str(base64.b64encode(art_img_byte_arr.getvalue()).decode("utf-8"))
 
-        pred_hm_image = str(base64.b64encode(art_img_byte_arr.getvalue()).decode("utf-8"))
+        with io.BytesIO() as hm_byte_arr:
+            heatmap.save(hm_byte_arr, format='jpeg')
 
-    with io.BytesIO() as hm_byte_arr:
-        heatmap.save(hm_byte_arr, format='jpeg')
+            heatmap = str(base64.b64encode(hm_byte_arr.getvalue()).decode("utf-8"))
 
-        heatmap = str(base64.b64encode(hm_byte_arr.getvalue()).decode("utf-8"))
+        results_dict = {
+            ART_CLASS_LABELS[pred_index]: preds[pred_index] for pred_index in sorted_pred_index
+        }
 
-    results_dict = {
-        ART_CLASS_LABELS[pred_index]: preds[pred_index] for pred_index in sorted_pred_index
-    }
+        attribution_scores_dict = {
+            DIFFUSION_MODEL_LABELS[attr_index]: attribution_scores[attr_index] for attr_index in
+            range(len(attribution_scores))
+        }
 
-    attribution_scores_dict = {
-        DIFFUSION_MODEL_LABELS[attr_index]: attribution_scores[attr_index] for attr_index in
-        range(len(attribution_scores))
-    }
+        attribution_scores_dict = {model_name: score for model_name, score in sorted(
+            attribution_scores_dict.items(), key=lambda item: item[1], reverse=True
+        )}
 
-    attribution_scores_dict = {model_name: score for model_name, score in sorted(
-        attribution_scores_dict.items(), key=lambda item: item[1], reverse=True
-    )}
-
-    return {
-        "hm_img": pred_hm_image,
-        "heatmap": heatmap,
-        "prediction_results": results_dict,
-        "attribution_scores": attribution_scores_dict
-    }
+        return {
+            "hm_img": pred_hm_image,
+            "heatmap": heatmap,
+            "prediction_results": results_dict,
+            "attribution_scores": attribution_scores_dict
+        }
+    except Exception as e:
+        # raise e
+        return {"error": str(e)}
 
 
 def run_server():
@@ -138,6 +137,7 @@ def run_server():
 
 
 if __name__ == "__main__":
+    # Increasing stack size for the application to run
     threading.stack_size(10000000)
     thread = threading.Thread(target=run_server)
     thread.start()

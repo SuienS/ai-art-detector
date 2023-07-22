@@ -41,11 +41,14 @@ class AttentionModule(nn.Module):
 
 class AttentionConvNeXt(nn.Module):
 
-    def __init__(self, n_classes, n_art_img_features=9):
+    def __init__(self, n_classes, imagenet_weights=False):
         super(AttentionConvNeXt, self).__init__()
 
+        self.convnext = convnext_base()
+
         # Pretrained ConvNeXt
-        self.convnext = convnext_base(weights=ConvNeXt_Base_Weights.DEFAULT)
+        if imagenet_weights:
+            self.convnext = convnext_base(weights=ConvNeXt_Base_Weights.DEFAULT)
 
         self.features_low_CNB = self.convnext.features[:4]
 
