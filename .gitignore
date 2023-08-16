@@ -3,4 +3,4 @@
 /model/*.pkl
 
 *.onnx
-/misc/
+/AppFastAPI/misc/

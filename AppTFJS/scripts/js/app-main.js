@@ -47,9 +47,9 @@ const JET_RGB_COLORMAP_VALS = [
 ];
 
 const CLASSES_DISP_NAME = {
-    'AI_LD_art_nouveau':"Art Nouveau - LD",
-    'AI_LD_baroque':"Baroque - LD",
-    'AI_LD_expressionism':"Expressionism - LD",
+    'AI_LD_art_nouveau': "Art Nouveau - LD",
+    'AI_LD_baroque': "Baroque - LD",
+    'AI_LD_expressionism': "Expressionism - LD",
     'AI_LD_impressionism': "Impressionism - LD",
     'AI_LD_post_impressionism': "Post Impressionism - LD",
     'AI_LD_realism': "Realism - LD",
@@ -69,7 +69,7 @@ const CLASSES_DISP_NAME = {
     'AI_SD_ukiyo-e': "Ukiyo-e - SD",
     'art_nouveau': "Art Nouveau - Human",
     'baroque': "Baroque - Human",
-    'expressionism':"Expressionism - Human",
+    'expressionism': "Expressionism - Human",
     'impressionism': "Impressionism - Human",
     'post_impressionism': "Post Impressionism - Human",
     'realism': "Realism - Human",
@@ -192,10 +192,10 @@ async function getPredictions() {
         pred_display_fill_elements.at(index).style.width = pred_result + "%"
     });
 
-    attribution_scores.forEach(function (pred_value, index) {
-        attr_display_label_elements.at(index).innerHTML = GEN_MODELS[index]
+    attribution_scores[0].forEach(function (sorted_attr_index, index) {
+        attr_display_label_elements.at(index).innerHTML = GEN_MODELS[sorted_attr_index]
 
-        let pred_result = Math.round(pred_value * 100)
+        let pred_result = Math.round(attribution_scores[1][sorted_attr_index] * 100)
         attr_display_elements.at(index).ariaValueNow = pred_result.toString()
         attr_display_fill_elements.at(index).innerHTML = pred_result + "%"
         attr_display_fill_elements.at(index).style.width = pred_result + "%"
@@ -204,11 +204,17 @@ async function getPredictions() {
 }
 
 function getAttributionScores(preds) {
-    return [
-        preds.slice(0,10).reduce((pred_sum, pred) => pred_sum + pred, 0),
-        preds.slice(10,20).reduce((pred_sum, pred) => pred_sum + pred, 0),
-        preds.slice(20,30).reduce((pred_sum, pred) => pred_sum + pred, 0)
+    let attr_scores = [
+        preds.slice(0, 10).reduce((pred_sum, pred) => pred_sum + pred, 0),
+        preds.slice(10, 20).reduce((pred_sum, pred) => pred_sum + pred, 0),
+        preds.slice(20, 30).reduce((pred_sum, pred) => pred_sum + pred, 0)
     ]
+    console.log(attr_scores)
+
+    const attr_scores_sort_indices = Array.from(attr_scores.keys()).sort(
+        (idx_0,idx_1) => attr_scores[idx_1]-attr_scores[idx_0]
+    )
+    return [attr_scores_sort_indices, attr_scores]
 }
 
 function generateColMap(x) {
@@ -238,6 +244,7 @@ function generateColMap(x) {
         return buffer.toTensor();
     });
 }
+
 // GradCAM: https://doi.org/10.1109/ICCV.2017.74
 // TF GradCAM: https://github.com/tensorflow/tfjs-examples/tree/master/visualize-convnet
 function getGradCamPrediction(model, pred_class_index, input_image, org_image = 1) {

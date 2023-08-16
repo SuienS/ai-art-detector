@@ -16,7 +16,7 @@ import base64
 
 from PIL import Image
 
-from constants import ART_CLASS_LABELS, DIFFUSION_MODEL_LABELS
+from utils.constants import ART_CLASS_LABELS, DIFFUSION_MODEL_LABELS
 from utils.inferencing import InferencingService
 from model.model import AttentionConvNeXt
 
@@ -33,7 +33,7 @@ print("[INFO]: Loading model...")
 # with open('./model/preprocess_transforms.pt', 'wb') as f:
 #     pickle.dump(preprocess_transforms, f)
 
-with open('./model/preprocess_transforms.pt', 'rb') as f:
+with open('model/preprocess_transforms.pt', 'rb') as f:
     preprocess_transforms = pickle.load(f)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -41,7 +41,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 art_brain_model = AttentionConvNeXt(len(ART_CLASS_LABELS)).to(device)
 # art_vision_model.load_state_dict(torch.load("./model/top_art_brain_model.pt", map_location=device)['model_state_dict'])
 # torch.save(art_vision_model.state_dict(), "./model/top_art_brain_model_state.pt")
-art_brain_model.load_state_dict(torch.load("./model/artbrain_top_model_weights.pt", map_location=device))
+art_brain_model.load_state_dict(torch.load("model/artbrain_top_model_weights.pt", map_location=device))
 # art_vision_model = torch.load("./model/art_brain_model_scripted.pt", map_location=device)
 art_brain_model.eval()
 

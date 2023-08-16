@@ -4,7 +4,7 @@ from torchvision.transforms.functional import to_pil_image
 
 from matplotlib import colormaps
 
-from constants import FM_G_CAM_TYPE, G_CAM_TYPE, IMG_H, IMG_W
+from utils.constants import FM_G_CAM_TYPE, G_CAM_TYPE, IMG_H, IMG_W
 from service.localisation import LocalisationService
 from service.prediction import PredictionService
 from utils.pred_utils import get_attribution_scores

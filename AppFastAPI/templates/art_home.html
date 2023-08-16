@@ -1,0 +1,342 @@
+{#<!DOCTYPE html>#}
+{#<html lang="en">#}
+{#<head>#}
+{#    <meta charset="UTF-8">#}
+{#    <title>ArtBrain</title>#}
+{#    <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">#}
+{#</head>#}
+{#<body>#}
+{#<h1>ArtBrain</h1>#}
+{#</body>#}
+{#</html>#}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Ravidu Suien Rammuni Silva">
+    <title>Art Brain</title>
+
+    {#    <link rel="canonical" href="https://getbootstrap.com/docs/5.0/examples/headers/">#}
+
+
+    <!-- Bootstrap core CSS -->
+    <link href="{{ url_for('static', path='/scripts/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', path='/scripts/css/app-main.css') }}" rel="stylesheet">
+    <link id="favicon" rel="icon" type="image/x-icon" href="{{ url_for('static', path='/images/favicon.ico') }}">
+
+</head>
+<body>
+
+<main>
+    <!-- Header Bar-->
+    <header class="py-3 mb-4 border-bottom shadow glow-card">
+        <div class="container d-flex flex-wrap justify-content-lg-start">
+            <a href="/AppFastAPI/static" class="d-flex align-items-center mb-lg-0 me-lg-auto text-dark text-decoration-none">
+                <img class="m-1 border border-dark rounded d-block" style="width: 14%"
+                     src="{{ url_for('static', path='/images/art_brain_logo_320_320.jpg') }}">
+                <h1 class="display-4">ArtBrain</h1>
+            </a>
+        </div>
+    </header>
+    <div style="padding: 1rem">
+        <figure class="text-end">
+            <blockquote class="blockquote">
+                <p>"Art is not an object but experience"</p>
+            </blockquote>
+            <figcaption class="blockquote-footer">
+                Josef Albers in <cite title="The Journal of Aesthetic Education, Vol. 8, No. 2">The Journal of Aesthetic
+                Education, Vol. 8, No. 2</cite>
+            </figcaption>
+        </figure>
+    </div>
+
+    <div class="content d-flex flex-wrap p-3 m-3">
+
+        <!-- imageupload. -->
+        <div class="image-upload-form card-body m-3">
+            <div class="image-preview glow-card" style="display: inline-table">
+                <img id="img-upload-file" class="img-thumbnail" alt="Upload image">
+            </div>
+
+            <form id="pred-form-data">
+                <strong>Heatmap Type</strong>
+                <br>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" id="model1" name="heatmap_type" value="FM-G-CAM"
+                           checked>
+                    <label class="form-check-label" for="model1">FM-G-CAM</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" id="model2" name="heatmap_type" value="G-CAM">
+                    <label class="form-check-label" for="model2">G-CAM</label>
+                </div>
+                <br>
+
+                <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#model-info-modal">
+                    System Information
+                </button>
+
+                <br>
+                <br>
+
+
+                <label id="upload-btn" for="image-file-input" style="display: block"
+                       class="btn btn-outline-primary btn-lg">
+                    Upload Image
+                </label>
+                <input type="file" id="image-file-input" name="img_file" style="display: none"
+                       accept="image/png, image/jpeg">
+
+                <label id="pred-submit-btn" class="btn btn-outline-primary btn-lg" type="button" style="display: none;">
+                    Submit for prediction
+                </label>
+
+                <label id="pred-loading-button" style="display: none" class="btn btn-outline-primary btn-lg"
+                       type="button"
+                       disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Loading...
+                </label>
+
+            </form>
+
+
+        </div>
+
+
+        <!-- Results Card -->
+        <div id="pred-results-card" class="card glow-card rounded-2 m-3" style="display:none; width: 18rem;">
+
+            <!--Heatmap display-->
+            <img id="heatmap-image" class="hm-background rounded-2 img-responsive" src="" alt="heatmap_image">
+            <img id="heatmap" class="hm-overlay rounded-2 img-responsive" src="" alt="heatmap">
+
+            <div class="card-body">
+
+                <!-- Heatmap Slider-->
+                <label for="heatmap-range" class="form-label text-secondary">Heatmap Opacity</label>
+                <input type="range" class="form-range" oninput="heatmap.style.opacity = this.value"
+                       min="0" max="1" step="0.005" value="0.6" id="heatmap-range">
+
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true"
+                                    aria-controls="panelsStayOpen-collapseOne">
+                                <strong>Art Style</strong>
+                            </button>
+                        </h2>
+                        <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show"
+                             aria-labelledby="panelsStayOpen-headingOne" style="">
+                            <div class="accordion-body">
+                                <span class="pred-results-label badge mt-2 text-bg-danger">Primary</span>
+                                <div class="pred-results progress m-1" role="progressbar" aria-label="class1"
+                                     aria-valuenow="25"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <div class="pred-results-fill progress-bar bg-danger bg-gradient"
+                                         style="width: 25%">25%
+                                    </div>
+                                </div>
+
+                                <span class="pred-results-label badge mt-2 text-bg-success">Primary</span>
+                                <div class="pred-results progress m-1" role="progressbar" aria-label="class2"
+                                     aria-valuenow="50"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <div class="pred-results-fill progress-bar bg-success bg-gradient"
+                                         style="width: 50%">
+                                        50%
+                                    </div>
+                                </div>
+
+                                <span class="pred-results-label badge mt-2 text-bg-primary">Primary</span>
+                                <div class="pred-results progress m-1" role="progressbar" aria-label="class3"
+                                     aria-valuenow="75"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <div class="pred-results-fill progress-bar bg-primary bg-gradient"
+                                         style="width: 75%">
+                                        75%
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="panelsStayOpen-headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false"
+                                    aria-controls="panelsStayOpen-collapseTwo">
+                                <strong>Attribution Scores</strong>
+                            </button>
+                        </h2>
+                        <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse"
+                             aria-labelledby="panelsStayOpen-headingTwo" style="">
+                            <div class="accordion-body">
+                                <span class="attr-results-label badge mt-2 text-bg-info text-light">Primary</span>
+                                <div class="attr-results progress m-1" role="progressbar" aria-label="class1"
+                                     aria-valuenow="25"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <div class="attr-results-fill progress-bar bg-info" style="width: 25%">25%
+                                    </div>
+                                </div>
+
+                                <span class="attr-results-label badge mt-2 text-bg-warning text-light">Primary</span>
+                                <div class="attr-results progress m-1" role="progressbar" aria-label="class2"
+                                     aria-valuenow="50"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <div class="attr-results-fill progress-bar bg-warning" style="width: 50%">
+                                        50%
+                                    </div>
+                                </div>
+
+                                <span class="attr-results-label badge mt-2 text-bg-secondary">Primary</span>
+                                <div class="attr-results progress m-1" role="progressbar" aria-label="class3"
+                                     aria-valuenow="75"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <div class="attr-results-fill progress-bar bg-secondary" style="width: 75%">
+                                        75%
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Information Modal -->
+    <div class="modal fade" id="model-info-modal" tabindex="-1" aria-labelledby="infoModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="infoModal">ArtBrain System Information</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="accordion accordion-flush" id="accordionModelInfo">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#flush-collapseOne" aria-expanded="false"
+                                        aria-controls="flush-collapseOne">
+                                    Model Information
+                                </button>
+                            </h2>
+                            <div id="flush-collapseOne" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <ul class="list-group">
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">Model Accuracy</div>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill fs-6">87 %</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">Main Classes</div>
+                                                Latent Diffusion (LD), Standard Diffusion (SD), Human
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">3</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">Sub-classes</div>
+                                                Art Nouveau, Baroque, Expressionism, Impressionism, Post impressionism,
+                                                Realism, Renaissance, Romanticism, Surrealism, Ukiyo-e.
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">10</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">Result Label Format</div>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">&LT;SubClass&gt;-&LT;MainClass&gt;</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">Total Classes</div>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">30</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#flush-collapseTwo" aria-expanded="false"
+                                        aria-controls="flush-collapseTwo">
+                                    Heatmap Information
+                                </button>
+                            </h2>
+                            <div id="flush-collapseTwo" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <ul class="list-group">
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">Fused Multi-class Gradient-weighted Channel
+                                                    Attention Map
+                                                </div>
+                                                A three-coloured heatmap is produced in this method highlighting the areas
+                                                of the image that has affected the prediction results. Each color represents
+                                                one of the top 3 classes predicted in the result card in that related
+                                                colour. The intensity signifies the importance.
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">FM-G-CAM</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">Gradient-weighted Channel Attention Map</div>
+                                                A heatmap is produced in this method highlighting the areas of the image
+                                                that has affected the prediction results. Only the effect of top class is
+                                                visualised. JET colour map is used to represent the importance.
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">G-CAM</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="display: inline">
+                    <p class="fst-italic fw-light">
+                        Author: Ravidu Suien Rammuni Silva
+                    </p>
+                    <p class="fst-italic fw-light">
+                        Email: ravidus.ac@gmail.com,
+                        ravidu.rammunisilva2022@my.ntu.ac.uk
+                    </p>
+                    <p class="fst-italic fw-light">
+                        Liability Statement!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        Liability Statement!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        Liability Statement!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+<script src="{{ url_for('static', path='/scripts/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', path='/scripts/js/app-main.js') }}"></script>
+
+
+</body>
+</html>

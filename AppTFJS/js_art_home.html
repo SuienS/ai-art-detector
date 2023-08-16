@@ -1,14 +1,3 @@
-{#<!DOCTYPE html>#}
-{#<html lang="en">#}
-{#<head>#}
-{#    <meta charset="UTF-8">#}
-{#    <title>ArtBrain</title>#}
-{#    <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">#}
-{#</head>#}
-{#<body>#}
-{#<h1>ArtBrain</h1>#}
-{#</body>#}
-{#</html>#}
 <!doctype html>
 <html lang="en">
 <head>
@@ -18,27 +7,37 @@
     <meta name="author" content="Ravidu Suien Rammuni Silva">
     <title>Art Brain</title>
 
-    {#    <link rel="canonical" href="https://getbootstrap.com/docs/5.0/examples/headers/">#}
-
 
     <!-- Bootstrap core CSS -->
-    <link href="{{ url_for('static', path='/scripts/css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', path='/scripts/css/app-main.css') }}" rel="stylesheet">
+    <link href="scripts/css/bootstrap.min.css" rel="stylesheet">
+    <link href="scripts/css/app-main.css" rel="stylesheet">
 
 </head>
 <body>
 
 <main>
+
     <!-- Header Bar-->
     <header class="py-3 mb-4 border-bottom shadow glow-card">
         <div class="container d-flex flex-wrap justify-content-lg-start">
             <a href="/" class="d-flex align-items-center mb-lg-0 me-lg-auto text-dark text-decoration-none">
                 <img class="m-1 border border-dark rounded d-block" style="width: 14%"
-                     src="{{ url_for('static', path='/images/art_brain_logo_320_320.jpg') }}">
+                     src="images/art_brain_logo_320_320.jpg">
                 <h1 class="display-4">ArtBrain</h1>
             </a>
         </div>
     </header>
+    <div style="padding: 1rem">
+        <figure class="text-end">
+            <blockquote class="blockquote">
+                <p>"Art is not an object but experience"</p>
+            </blockquote>
+            <figcaption class="blockquote-footer">
+                Josef Albers in <cite title="The Journal of Aesthetic Education, Vol. 8, No. 2">The Journal of Aesthetic
+                Education, Vol. 8, No. 2</cite>
+            </figcaption>
+        </figure>
+    </div>
 
     <div class="content d-flex flex-wrap p-3 m-3">
 
@@ -49,19 +48,21 @@
             </div>
 
             <form id="pred-form-data">
-                <strong>Heatmap Type: </strong>
+                <strong>Heatmap Type</strong>
+                <br>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="model1" name="heatmap_type" value="FM-G-CAM" checked>
-                    <label class="form-check-label" for="model1">FM-CAM</label>
+                    <input class="form-check-input" type="radio" id="model1" name="heatmap_type" value="FM-G-CAM"
+                           disabled>
+                    <label class="form-check-label" for="model1">FM-G-CAM</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="model2" name="heatmap_type" value="G-CAM">
+                    <input class="form-check-input" type="radio" id="model2" name="heatmap_type" value="G-CAM" checked>
                     <label class="form-check-label" for="model2">G-CAM</label>
                 </div>
                 <br>
 
                 <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#model-info-modal">
-                    Model Information
+                    System Information
                 </button>
 
                 <br>
@@ -169,7 +170,7 @@
                                      aria-valuenow="25"
                                      aria-valuemin="0"
                                      aria-valuemax="100">
-                                    <div class="attr-results-fill progress-bar bg-secondary" style="width: 25%">25%</div>
+                                    <div class="attr-results-fill progress-bar bg-success" style="width: 25%">25%</div>
                                 </div>
 
                                 <span class="attr-results-label badge mt-2 text-bg-primary">Primary</span>
@@ -203,30 +204,130 @@
 
     </div>
 
-    <!-- Modal -->
+    <!-- Information Modal -->
     <div class="modal fade" id="model-info-modal" tabindex="-1" aria-labelledby="infoModal" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="infoModal">Modal title</h1>
+                    <h1 class="modal-title fs-5" id="infoModal">ArtBrain System Information</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    ...
+                    <div class="accordion accordion-flush" id="accordionModelInfo">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#flush-collapseOne" aria-expanded="false"
+                                        aria-controls="flush-collapseOne">
+                                    Model Information
+                                </button>
+                            </h2>
+                            <div id="flush-collapseOne" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <ul class="list-group">
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">Model Accuracy</div>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill fs-6">83 %</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">Main Classes</div>
+                                                Latent Diffusion (LD), Standard Diffusion (SD), Human
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">3</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">Sub-classes</div>
+                                                Art Nouveau, Baroque, Expressionism, Impressionism, Post impressionism,
+                                                Realism, Renaissance, Romanticism, Surrealism, Ukiyo-e.
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">10</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">Result Label Format</div>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">&LT;SubClass&gt;-&LT;MainClass&gt;</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">Total Classes</div>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">30</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#flush-collapseTwo" aria-expanded="false"
+                                        aria-controls="flush-collapseTwo">
+                                    Heatmap Information
+                                </button>
+                            </h2>
+                            <div id="flush-collapseTwo" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <ul class="list-group">
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">Fused Multi-class Gradient-weighted Channel
+                                                    Attention Map
+                                                </div>
+                                                A three-coloured heatmap is produced in this method highlighting the areas
+                                                of the image that has affected the prediction results. Each color represents
+                                                one of the top 3 classes predicted in the result card in that related
+                                                colour. The intensity signifies the importance.
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">FM-G-CAM</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">Gradient-weighted Channel Attention Map</div>
+                                                A heatmap is produced in this method highlighting the areas of the image
+                                                that has affected the prediction results. Only the effect of top class is
+                                                visualised. JET colour map is used to represent the importance.
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">G-CAM</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
+                <div class="modal-footer" style="display: inline">
+                    <p class="fst-italic fw-light">
+                        On-device Application based on TensorFlowJS
+                    </p>
+                    <p class="fst-italic fw-light">
+                        Author: Ravidu Suien Rammuni Silva
+                    </p>
+                    <p class="fst-italic fw-light">
+                        Email: ravidus.ac@gmail.com,
+                        ravidu.rammunisilva2022@my.ntu.ac.uk
+                    </p>
+                    <p class="fst-italic fw-light">
+                        Liability Statement!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        Liability Statement!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        Liability Statement!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 
+    <canvas id="image-upload-canvas" style="display: none"></canvas>
 </main>
 
 
-<script src="{{ url_for('static', path='/scripts/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ url_for('static', path='/scripts/js/app-main.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.6.0/dist/tf.min.js"></script>
+<script src="scripts/js/bootstrap.bundle.min.js"></script>
+<script src="scripts/js/app-main.js"></script>
 
 
 </body>

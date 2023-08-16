@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-from constants import FM_HEATMAP_CLASS_COUNT, FM_G_CAM_TYPE, G_CAM_TYPE
+from utils.constants import FM_HEATMAP_CLASS_COUNT, FM_G_CAM_TYPE, G_CAM_TYPE
 
 
 class PredictionService:
