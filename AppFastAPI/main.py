@@ -23,11 +23,14 @@ from model.model import AttentionConvNeXt
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/scripts", StaticFiles(directory="./../AppTFJS/scripts"), name="scripts")
+app.mount("/model", StaticFiles(directory="./../AppTFJS/model"), name="model")
+app.mount("/images", StaticFiles(directory="./../AppTFJS/images"), name="images")
 
 templates = Jinja2Templates(directory="templates")
+template_on_device = Jinja2Templates(directory="./../AppTFJS")
 # Load model
 print("[INFO]: Loading model...")
-
 
 # preprocess_transforms = imagenet_weights.transforms()
 # with open('./model/preprocess_transforms.pt', 'wb') as f:
@@ -70,6 +73,11 @@ app.add_middleware(
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     return templates.TemplateResponse("art_home.html", {"request": request})
+
+
+@app.get("/on-device-app", response_class=HTMLResponse)
+async def root(request: Request):
+    return template_on_device.TemplateResponse("js_art_home.html", {"request": request})
 
 
 @app.post("/prediction/test")
