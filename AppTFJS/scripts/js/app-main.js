@@ -96,6 +96,7 @@ image_upload.addEventListener("change", showImgPreview)
 pred_submit_btn_element.addEventListener("click", sendImage)
 
 
+// This function displays a preview of the uploaded image
 function showImgPreview() {
     if (image_upload.files.length > 0) {
         var src = URL.createObjectURL(image_upload.files[0]);
@@ -106,6 +107,7 @@ function showImgPreview() {
     }
 }
 
+// This function send the input image to the prediction function
 function sendImage() {
 
     // Displaying loader
@@ -119,6 +121,7 @@ function sendImage() {
 
 }
 
+// This function produces the predictions results and display them in the UI
 async function getPredictions() {
     // Load art model
     const art_brain_model = await tf.loadLayersModel('model/modeljs/model.json');
@@ -203,6 +206,7 @@ async function getPredictions() {
 
 }
 
+// This function calculates the attribution scores
 function getAttributionScores(preds) {
     let attr_scores = [
         preds.slice(0, 10).reduce((pred_sum, pred) => pred_sum + pred, 0),
@@ -217,6 +221,7 @@ function getAttributionScores(preds) {
     return [attr_scores_sort_indices, attr_scores]
 }
 
+// This function generates the colourmap required for the Grad-CAM
 function generateColMap(x) {
 
     return tf.tidy(() => {
@@ -245,19 +250,22 @@ function generateColMap(x) {
     });
 }
 
+// This functino implements the Grad-CAM
 // GradCAM: https://doi.org/10.1109/ICCV.2017.74
 // TF GradCAM: https://github.com/tensorflow/tfjs-examples/tree/master/visualize-convnet
 function getGradCamPrediction(model, pred_class_index, input_image, org_image = 1) {
 
+    // Last convolutional layer number
     let last_conv_layer_index = 151
     const last_conv_layer = model.layers[last_conv_layer_index];
 
-    // Get last conv layer
+    // Get last convolutional layer of the model
     const last_conv_layer_out = last_conv_layer.output;
+
+    // Activation calculation model
     const act_model = tf.model({inputs: model.inputs, outputs: last_conv_layer_out});
 
-    // Get "sub-model 2", which goes from the output of the last convolutional
-    // layer to the original output.
+    // New sub model that calculates gradients of the last convolutional layer w.r.t the final prediction
     const act_model_input = tf.input({shape: last_conv_layer_out.shape.slice(1)});
     last_conv_layer_index++;
     let y = act_model_input;
@@ -267,55 +275,45 @@ function getGradCamPrediction(model, pred_class_index, input_image, org_image = 
     const grad_model = tf.model({inputs: act_model_input, outputs: y});
 
     return tf.tidy(() => {
-        // This function runs sub-model 2 and extracts the slice of the probability
-        // output that corresponds to the desired class.
+        // This functions calculates activations and gradients w.r.t a given class prediction
         const conv_wrt_class_output = (input) =>
             grad_model.apply(input, {training: true}).gather([pred_class_index], 1);
 
-        // This is the gradient function of the output corresponding to the desired
-        // class with respect to its input (i.e., the output of the last
-        // convolutional layer of the original model).
+        // Gradient Calculation Model
         const grad_cal_function = tf.grad(conv_wrt_class_output);
 
-        // Calculate the values of the last conv layer's output.
+        // Activation Calculation
         const last_conv_out_vals = act_model.apply(input_image);
-        // Calculate the values of gradients of the class output w.r.t. the output
-        // of the last convolutional layer.
+
+        // Gradient Calculation
         const pred_grad_vals = grad_cal_function(last_conv_out_vals);
 
-        // Pool the gradient values within each filter of the last convolutional
-        // layer, resulting in a tensor of shape [numFilters].
+        // Pooling gradient values
         const pooled_gad_vals = tf.mean(pred_grad_vals, [0, 1, 2]);
-        // Scale the convlutional layer's output by the pooled gradients, using
-        // broadcasting.
+
+        // Weighing the activations based on the gradients
         const weighted_conv_vals = last_conv_out_vals.mul(pooled_gad_vals);
 
-        // Create heat map by averaging and collapsing over all filters.
+        // Final pooling to get 2D map
         let grad_heatmap = weighted_conv_vals.mean(-1);
 
-        // Discard negative values from the heat map and normalize it to the [0, 1]
-        // interval.
+        // Post-processing of the map
+
         var img_values = tf.moments(grad_heatmap, [0, 1, 2])
-
         grad_heatmap = grad_heatmap.sub(img_values.mean).div(img_values.variance.sqrt());
-
         grad_heatmap = grad_heatmap.relu();
         grad_heatmap = grad_heatmap.div(grad_heatmap.max()).expandDims(-1);
 
-        // Up-sample the heat map to the size of the input image.
+        // Resizing the heatmap to match the input image
         grad_heatmap = tf.image.resizeBilinear(grad_heatmap, [org_image.shape[1], org_image.shape[2]]);
 
-        // Apply an RGB colormap on the heatMap. This step is necessary because
-        // the heatMap is a 1-channel (grayscale) image. It needs to be converted
-        // into a color (RGB) one through this function call.
+        // 'JET' colour map creation
         grad_heatmap = generateColMap(grad_heatmap);
 
         grad_heatmap = grad_heatmap.div(grad_heatmap.max()).relu()
 
         org_image = org_image.div(255);
-        return [grad_heatmap, org_image];//.mul(255);
+        return [grad_heatmap, org_image];
     });
 }
 
-//inmg src="data:image/jpeg;base64,{{ hm_img }}"
-//https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
