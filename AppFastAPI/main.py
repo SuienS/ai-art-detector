@@ -14,7 +14,7 @@ import pickle
 from uvicorn import run
 import base64
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 from utils.constants import ART_CLASS_LABELS, DIFFUSION_MODEL_LABELS
 from utils.inferencing import InferencingService
@@ -97,6 +97,9 @@ async def art_brain_pred(
 
         art_image = Image.open(io.BytesIO(art_image))
 
+        # Rotation correction for mobile capture using EXIF information
+        art_image = ImageOps.exif_transpose(art_image)
+
         print("[INFO]: Prediction Started...")
         print("[INFO]: Heatmap type: ", heatmap_type)
 
@@ -141,7 +144,7 @@ async def art_brain_pred(
 
 def run_server():
     port = int(os.environ.get('PORT', 8000))
-    run(app, host="0.0.0.0", port=port)
+    run(app, host="0.0.0.0", port=port, proxy_headers=True, forwarded_allow_ips="*")
 
 
 if __name__ == "__main__":
