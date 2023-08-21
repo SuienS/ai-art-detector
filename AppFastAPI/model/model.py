@@ -40,6 +40,9 @@ class AttentionModule(nn.Module):
 
 
 class AttentionConvNeXt(nn.Module):
+    """
+    Novel AttentionConvNeXt model
+    """
 
     def __init__(self, n_classes, imagenet_weights=False):
         super(AttentionConvNeXt, self).__init__()

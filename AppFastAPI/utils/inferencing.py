@@ -11,6 +11,9 @@ from utils.pred_utils import get_attribution_scores
 
 
 class InferencingService:
+    """
+    This class contains all the functions needed for the inferencing
+    """
     def __init__(self, model, preprocess_transforms, device):
         self.model = model
         self.preprocess_transforms = preprocess_transforms
@@ -22,10 +25,20 @@ class InferencingService:
         self.localisation_service = LocalisationService()
 
     def predict_image(self, art_img, hm_type, hm_opacity=None) -> (list, int, Image):
+        """
+        This function executes the main prediction mechanism of the system.
+
+        :param art_img: Input artistic image
+        :param hm_type: Heatmap Type - G-CAM or FM-G-CAM
+        :param hm_opacity: Opacity of the heatmap
+
+        :return: Prediction results, Attribution scores, Uploaded image and Heatmap
+        """
         preds, hm_overlay, sorted_pred_index = None, None, None
 
         art_img = art_img.resize((IMG_H, IMG_W), resample=Image.BICUBIC).convert('RGB')
         art_img_tensor = self.preprocess_transforms(art_img)
+        # Uncomment below to save image
         # import matplotlib.pyplot as plt
         # plt.imshow(art_img_tensor.squeeze().permute(1, 2, 0), cmap="gray")
         # plt.savefig('./processed_image.jpg')

@@ -3,8 +3,18 @@ import torch.nn.functional as F
 
 
 class LocalisationService:
+    """
+    This class contains all the functions required to generate the heatmap to explain the model predictions
+    """
     @staticmethod
     def generate_fmgcam(gradients_list, activations_list):
+        """
+        Fused Multi-class Gradient-weighted Class Activation Map
+
+        :param gradients_list: List of model gradients pertaining to multiple classes
+        :param activations_list: List of model activations pertaining to multiple classes
+        :return: FM-G-CAM heatmap
+        """
         heatmaps = []
 
         # Iterate through the activation maps related to top n classes
@@ -53,12 +63,20 @@ class LocalisationService:
 
     @staticmethod
     def generate_gcam(gradients, activations):
+        """
+        Implements Grad-CAM
+        https://doi.org/10.1109/ICCV.2017.74
+
+        :param gradients: List of model gradients pertaining to multiple classes
+        :param activations: List of model activations pertaining to multiple classes
+        :return: Grad-CAM
+        """
         avg_pooled_gradients = torch.mean(
             gradients[0],  # Size [1, 1024, 7, 7]
             dim=[0, 2, 3]
         )
 
-        # Weighting acitvation features (channels) using its related calculated Gradient
+        # Weighting activation features (channels) using its related calculated Gradient
         for i in range(activations.size()[1]):
             activations[:, i, :, :] *= avg_pooled_gradients[i]
 

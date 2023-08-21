@@ -7,6 +7,9 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class ArtVisionModelBase(nn.Module):
+    """
+    Base ConvNeXt Model
+    """
 
     def __init__(self, n_classes):
         super(ArtVisionModelBase, self).__init__()

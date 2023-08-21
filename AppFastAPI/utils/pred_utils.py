@@ -1,3 +1,6 @@
+"""
+This file contains utility functions used in the application
+"""
 import numpy as np
 
 

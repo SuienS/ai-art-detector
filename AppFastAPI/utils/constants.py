@@ -1,3 +1,6 @@
+"""
+This file contains all the constant utilised throughout this ArtBrain application
+"""
 ART_CLASS_LABELS = [
     'AI_LD_art_nouveau',
     'AI_LD_baroque',

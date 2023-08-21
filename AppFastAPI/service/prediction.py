@@ -5,12 +5,22 @@ from utils.constants import FM_HEATMAP_CLASS_COUNT, FM_G_CAM_TYPE, G_CAM_TYPE
 
 
 class PredictionService:
+    """
+    This class contains all the functions used for the model prediction
+    """
 
     def __init__(self, model, last_conv_layer):
         self.model = model
         self.last_conv_layer = last_conv_layer
 
     def get_model_pred(self, art_img_tensor, hm_type):
+        """
+        This function produces prediction results for a given image
+
+        :param art_img_tensor: Input image tensor
+        :param hm_type: Type of the heatmap image
+        :return: Prediction results with activation and gradient list
+        """
         grad_list = []
         act_list = []
 
