@@ -2,6 +2,10 @@
 This repository contains code for the prototype application developed as a part
 of the research project of MSc Data Science at Nottingham Trent University.
 
+## Contents
+ - AppFastAPI: ArtBrain developed using FastAPI.
+ - AppTFJS: ArtBrain developed using TensorFlowJS.
+
 ## Installation
 
 ### 1. Pre-requisites
