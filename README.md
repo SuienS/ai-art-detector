@@ -2,8 +2,7 @@
 This repository contains code for the prototype application developed as a part
 of the research project of MSc Data Science at Nottingham Trent University.
 
-# Installation
-## Application Installation
+## Installation
 
 ### 1. Pre-requisites
 
