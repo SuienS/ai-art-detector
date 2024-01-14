@@ -34,7 +34,7 @@ cd AppFastAPI \
 python3 main.py
 ```
 
-After the execution of this line you can visit you localhost to use the application
+After the execution of this line you can visit your localhost to use the application. Alternatively, you can use Docker to host the application using the Dockerfile provided.
 
 # Author
 - [Ravidu Suien Rammuni Silva](mailto:ravidus.acv@gmail.com)
