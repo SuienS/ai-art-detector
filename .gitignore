@@ -1,6 +1,8 @@
-/model/*.pt
+.idea
 
-/model/*.pkl
+# ignored models
+*/model/*
 
 *.onnx
+*.pyc
 /AppFastAPI/misc/
