@@ -1,7 +1,7 @@
 .idea
 
 # ignored models
-*/model/*
+**/model/*
 
 *.onnx
 *.pyc
