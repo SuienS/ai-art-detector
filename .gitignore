@@ -1,4 +1,4 @@
-.idea
+.idea/
 
 # ignored models
 **/model/*
@@ -6,3 +6,6 @@
 *.onnx
 *.pyc
 /AppFastAPI/misc/
+
+# WIP Files
+AppTFJS/standaloneHTML/ArtBrainStandaloneAllInOne.html
