@@ -1,6 +1,8 @@
 # ArtBrain: AI Art Detector
 This repository contains code for the prototype application developed as a part of my research project in MSc Data Science at Nottingham Trent University. The repo contains two main applications; an cloud based application and on-device application.
 
+![ArtBrain Web Application Screenshots](/misc/ArtBrainApp.png?raw=true "ArtBrain Web Application")
+
 ## Contents
  - AppFastAPI: ArtBrain developed using FastAPI.
  - AppTFJS: ArtBrain developed using TensorFlowJS.
