@@ -29,6 +29,7 @@ and virtual environment.
 Place the model files in their respective folders. Contact the author for the trained models.
 
 ### 4. Running the Application
+To run the FastAPI application, run the following commands in the terminal.
 
 ```
 cd AppFastAPI \
@@ -36,6 +37,8 @@ python3 main.py
 ```
 
 After the execution of this line you can visit your localhost to use the application. Alternatively, you can use Docker to host the application using the Dockerfile provided.
+
+To use the TensorFlowJS application, just open the [js_art_home.html](https://github.com/SuienS/ai-art-detector/blob/master/AppTFJS/js_art_home.html) file in a web browser. Make sure to have the model folders in the same directory as in the repository.
 
 # Author
 - [Ravidu Suien Rammuni Silva](mailto:ravidus.acv@gmail.com)
