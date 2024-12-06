@@ -1,5 +1,5 @@
 # ArtBrain: AI Art Detector
-This repository contains code for the prototype application developed as a part of my research project in MSc Data Science at Nottingham Trent University. The repo contains two main applications; an cloud based application and on-device application.
+This repository contains code for the prototype application developed as a part of my research project in MSc Data Science at Nottingham Trent University. The repo contains two main applications; an cloud based application and on-device application. The preprint of this work available [here](https://doi.org/10.48550/arXiv.2412.01512).
 
 ![ArtBrain Web Application Screenshots](/misc/ArtBrainApp.png?raw=true "ArtBrain Web Application")
 
